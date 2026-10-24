@@ -5,7 +5,7 @@ spotipy==2.25.1
 pycaw==20260927
 comtypes==1.4.17
 winsdk==1.0.0b10
-psutil==6.0.0
+psutil==7.2.2
 icalendar==7.3.0
 recurring-ical-events==3.8.2
 # Security-pinned HTTP/TLS dependencies; audited 2026-10-24.
