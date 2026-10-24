@@ -1,0 +1,5 @@
+{
+  "registered_and_dispatched": true,
+  "native_paste_owned_target": "Ctrl+V delivered once to owned test target; system clipboard untouched",
+  "scope": "Earlier isolated native integration check before the user instance registered the shortcut."
+}

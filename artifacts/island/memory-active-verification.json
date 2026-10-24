@@ -1,0 +1,46 @@
+{
+  "sampled_tree_peaks_MiB": {
+    "private_working_set_MiB": 23.33,
+    "working_set_MiB": 39.39,
+    "private_commit_MiB": 93.41
+  },
+  "under_50_private_WS_in_this_sample": true,
+  "under_50_private_commit_in_this_sample": false,
+  "samples": 278,
+  "sample_interval_ms": 100,
+  "max_simultaneous_processes": 3,
+  "processes_observed": 8,
+  "cases": [
+    {
+      "input": ".png",
+      "output": "pdf",
+      "success": true,
+      "message": "1 result ready \u00b7 save before closing."
+    },
+    {
+      "input": ".pdf",
+      "output": "md",
+      "success": true,
+      "message": "1 result ready \u00b7 save before closing."
+    },
+    {
+      "input": ".pdf",
+      "output": "docx",
+      "success": true,
+      "message": "1 result ready \u00b7 save before closing."
+    },
+    {
+      "input": ".docx",
+      "output": "pdf",
+      "success": true,
+      "message": "1 result ready \u00b7 save before closing."
+    },
+    {
+      "input": ".pdf",
+      "output": "md",
+      "success": true,
+      "message": "1 result ready \u00b7 save before closing."
+    }
+  ],
+  "limits": "Generated 1600x900 PNG, one-page text PDF and scanned PDF/OCR; actual media worker opened read-only. GUI/redirector/all descendants included, harness excluded. Sampling may miss sub-100ms peaks; not a hard cap, arbitrary-input guarantee, soak or compositor cost. No working-set trimming."
+}

@@ -1,0 +1,35 @@
+{
+  "dedupe": {
+    "clipboard_then_folder": true,
+    "folder_then_clipboard": true,
+    "compression_independent": true,
+    "original_path_preserved": true,
+    "images_and_files_absent_from_clipboard": true
+  },
+  "legacy_duplicates_repaired": true,
+  "downloads": {
+    "partial_ignored": true,
+    "completed_rename_added": true,
+    "old_files_ignored": true
+  },
+  "notes": {
+    "clickable_checklist": true,
+    "pin_first": true,
+    "autosave": true,
+    "simple_add_without_search_or_editor": true,
+    "reference_list_and_circle": true,
+    "no_subheading_search_detail_or_editor": true
+  },
+  "shelf": {
+    "real_thumbnail": true,
+    "inline_preview": true,
+    "remove_keeps_original": true
+  },
+  "context": {
+    "foreground_unchanged": true,
+    "typing_focus_unchanged": true,
+    "mini_290x56": true,
+    "click_action": true,
+    "active_page_not_interrupted": true
+  }
+}

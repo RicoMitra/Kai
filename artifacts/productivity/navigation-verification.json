@@ -1,0 +1,5 @@
+{
+  "music_stays_open_after_shrink": true,
+  "intentional_pointer_leave_closes": true,
+  "scope": "Owned island, fake media, temporary DB; no account or playback mutation"
+}

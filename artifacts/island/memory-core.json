@@ -1,0 +1,89 @@
+{
+  "mode": "core",
+  "warmup_seconds": 3,
+  "panel_cycle": false,
+  "samples": 10,
+  "interval_seconds": 1,
+  "metrics": {
+    "working_set_MiB": {
+      "min": 0.04,
+      "median": 2.55,
+      "max": 18.16
+    },
+    "private_working_set_MiB": {
+      "min": 0.04,
+      "median": 1.12,
+      "max": 9.89
+    },
+    "private_commit_MiB": {
+      "min": 28.02,
+      "median": 30.31,
+      "max": 30.31
+    }
+  },
+  "raw_samples": [
+    {
+      "working_set_MiB": 18.15625,
+      "private_working_set_MiB": 9.890625,
+      "private_commit_MiB": 28.01953125
+    },
+    {
+      "working_set_MiB": 0.17578125,
+      "private_working_set_MiB": 0.09375,
+      "private_commit_MiB": 28.01953125
+    },
+    {
+      "working_set_MiB": 3.3828125,
+      "private_working_set_MiB": 0.890625,
+      "private_commit_MiB": 28.01953125
+    },
+    {
+      "working_set_MiB": 0.03515625,
+      "private_working_set_MiB": 0.03515625,
+      "private_commit_MiB": 30.30859375
+    },
+    {
+      "working_set_MiB": 2.55078125,
+      "private_working_set_MiB": 1.21484375,
+      "private_commit_MiB": 30.30859375
+    },
+    {
+      "working_set_MiB": 2.55078125,
+      "private_working_set_MiB": 1.21484375,
+      "private_commit_MiB": 30.30859375
+    },
+    {
+      "working_set_MiB": 2.5546875,
+      "private_working_set_MiB": 1.21875,
+      "private_commit_MiB": 30.30859375
+    },
+    {
+      "working_set_MiB": 3.08203125,
+      "private_working_set_MiB": 1.546875,
+      "private_commit_MiB": 30.30859375
+    },
+    {
+      "working_set_MiB": 2.00390625,
+      "private_working_set_MiB": 1.03125,
+      "private_commit_MiB": 30.30859375
+    },
+    {
+      "working_set_MiB": 0.03515625,
+      "private_working_set_MiB": 0.03515625,
+      "private_commit_MiB": 30.30859375
+    }
+  ],
+  "process_count": 2,
+  "processes": [
+    {
+      "name": "pythonw.exe",
+      "private_working_set_MiB": 0.04
+    },
+    {
+      "name": "pythonw.exe",
+      "private_working_set_MiB": 0.0
+    }
+  ],
+  "launch": "pythonw GUI, same runtime as Kai.exe; temporary local user data",
+  "limits": "Sum of launcher and all descendants (working set may count shared pages twice). Short idle run; excludes DWM/system allocations, other apps and speech models. No memory trimming."
+}

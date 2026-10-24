@@ -1,0 +1,157 @@
+{
+  "date": "2026-10-24",
+  "scanner": "pip-audit 2.10.1",
+  "scope": "Installed active Python requirements closure, environment markers and extras; unrelated global packages excluded",
+  "packages_scanned": 26,
+  "known_advisories_after": 0,
+  "skipped_packages": [],
+  "remediated": [
+    {
+      "package": "certifi",
+      "previous_version": "2025.1.31",
+      "new_version": "2026.10.19",
+      "advisory_ids": [
+        "PYSEC-2026-4320"
+      ]
+    },
+    {
+      "package": "idna",
+      "previous_version": "3.10",
+      "new_version": "3.15",
+      "advisory_ids": [
+        "PYSEC-2026-215"
+      ]
+    },
+    {
+      "package": "requests",
+      "previous_version": "2.32.3",
+      "new_version": "2.33.0",
+      "advisory_ids": [
+        "PYSEC-2026-1872",
+        "PYSEC-2026-2275"
+      ]
+    },
+    {
+      "package": "urllib3",
+      "previous_version": "2.3.0",
+      "new_version": "2.8.0",
+      "advisory_ids": [
+        "PYSEC-2026-141",
+        "PYSEC-2026-1994",
+        "PYSEC-2026-1996",
+        "PYSEC-2026-1997",
+        "PYSEC-2026-1998",
+        "PYSEC-2026-1999",
+        "PYSEC-2026-4175",
+        "PYSEC-2026-4177"
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "name": "pyside6",
+      "version": "6.10.1"
+    },
+    {
+      "name": "pyside6-addons",
+      "version": "6.10.1"
+    },
+    {
+      "name": "pyside6-essentials",
+      "version": "6.10.1"
+    },
+    {
+      "name": "rapidfuzz",
+      "version": "3.14.6"
+    },
+    {
+      "name": "certifi",
+      "version": "2026.10.19"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.4.1"
+    },
+    {
+      "name": "click",
+      "version": "8.1.7"
+    },
+    {
+      "name": "colorama",
+      "version": "0.4.6"
+    },
+    {
+      "name": "comtypes",
+      "version": "1.4.17"
+    },
+    {
+      "name": "icalendar",
+      "version": "7.3.0"
+    },
+    {
+      "name": "idna",
+      "version": "3.15"
+    },
+    {
+      "name": "keyboard",
+      "version": "0.13.5"
+    },
+    {
+      "name": "psutil",
+      "version": "6.0.0"
+    },
+    {
+      "name": "pycaw",
+      "version": "20260927"
+    },
+    {
+      "name": "python-dateutil",
+      "version": "2.9.0.post0"
+    },
+    {
+      "name": "recurring-ical-events",
+      "version": "3.8.2"
+    },
+    {
+      "name": "redis",
+      "version": "6.4.0"
+    },
+    {
+      "name": "requests",
+      "version": "2.33.0"
+    },
+    {
+      "name": "shiboken6",
+      "version": "6.10.1"
+    },
+    {
+      "name": "six",
+      "version": "1.16.0"
+    },
+    {
+      "name": "spotipy",
+      "version": "2.25.1"
+    },
+    {
+      "name": "typing-extensions",
+      "version": "4.16.0"
+    },
+    {
+      "name": "tzdata",
+      "version": "2026.5"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.8.0"
+    },
+    {
+      "name": "winsdk",
+      "version": "1.0.0b10"
+    },
+    {
+      "name": "x-wr-timezone",
+      "version": "2.0.1"
+    }
+  ],
+  "limits": "Known advisory metadata only, not a full native Qt/PDFium/Windows audit or proof of security; no automatic runtime major-stack upgrade"
+}

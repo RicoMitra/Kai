@@ -1,0 +1,6 @@
+{
+  "audio_read_available": true,
+  "native_modules_absent_in_parent": true,
+  "voice_modules_absent_in_parent": true,
+  "worker_reaped": true
+}

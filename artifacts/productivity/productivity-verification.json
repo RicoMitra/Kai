@@ -1,0 +1,29 @@
+{
+  "clipboard": {
+    "text_link_only": true,
+    "code_as_text": true,
+    "restored_without_duplicate": true,
+    "pause": true,
+    "password_hint_excluded": true,
+    "images_only_in_shelf": true
+  },
+  "screenshots": {
+    "five_native_folder_events": true,
+    "originals_kept": true
+  },
+  "shelf": {
+    "five_file_drag_payload": true,
+    "six_embedded_pages": true,
+    "legacy_and_system_pages_removed": true
+  },
+  "notes": {
+    "autosave": true,
+    "flush_on_close": true
+  },
+  "adaptive_toast": {
+    "width": 290,
+    "height": 56
+  },
+  "native_hotkey": "unavailable (another instance may own it)",
+  "native_paste": "Ctrl+V delivered once to owned test target; system clipboard untouched"
+}

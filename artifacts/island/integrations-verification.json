@@ -1,0 +1,14 @@
+{
+  "weather": {
+    "ok": true,
+    "test_city_only": true
+  },
+  "lyrics": {
+    "ok": true,
+    "synced_lines": 40
+  },
+  "system": {
+    "ok": true,
+    "sensors_may_be_unavailable": true
+  }
+}

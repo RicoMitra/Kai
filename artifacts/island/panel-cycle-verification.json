@@ -1,0 +1,14 @@
+{
+  "opened": true,
+  "closed": true,
+  "worker_seen": true,
+  "worker_reaped": true,
+  "pages_visited": [
+    "Media",
+    "Clipboard",
+    "Notes",
+    "Shelf",
+    "Transform",
+    "Atur"
+  ]
+}

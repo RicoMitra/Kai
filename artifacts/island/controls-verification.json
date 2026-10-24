@@ -1,0 +1,9 @@
+{
+  "checks": [
+    "collapsed click-through",
+    "expanded native hit test",
+    "click opens panel",
+    "six productivity pages; system removed"
+  ],
+  "scope": "Own widgets and temporary database; no microphone, model, media mutation, login or network"
+}

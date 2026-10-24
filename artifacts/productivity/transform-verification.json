@@ -1,0 +1,21 @@
+{
+  "conversions": [
+    "source.png \u2192 pdf",
+    "source.jpg \u2192 pdf",
+    "source.pdf \u2192 md",
+    "source.pdf \u2192 docx",
+    "source.docx \u2192 pdf",
+    "scan.pdf \u2192 md"
+  ],
+  "windows_ocr": "real generated scanned PDF recognized locally; no model download",
+  "engine_isolation_and_reaped": true,
+  "ui": {
+    "command_replaced": true,
+    "four_workflows_only": true,
+    "single_input_and_result": true,
+    "save_cleans_temporary": true,
+    "leave_cancels_and_reaps": true,
+    "saved_copy_kept": true,
+    "no_parent_pdf_or_ocr_engine": true
+  }
+}

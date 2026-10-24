@@ -1,0 +1,19 @@
+{
+  "platform": "Windows native Qt",
+  "qt_platform": "windows",
+  "device_pixel_ratio": 1.5,
+  "checks": [
+    "hover opens",
+    "700ms delay",
+    "reentry cancels collapse",
+    "mid-collapse retarget",
+    "idle animation timer stopped",
+    "foreground unchanged",
+    "native click-through hit testing",
+    "native transparent/noactivate styles"
+  ],
+  "timer_interval_ms_p50": 11.93,
+  "timer_interval_ms_p95": 15.06,
+  "idle_cpu_one_core_percent_2s": 2.331,
+  "limits": "Timer intervals are not displayed frame times. CPU sample is short. DPI and monitor match current desktop only."
+}
