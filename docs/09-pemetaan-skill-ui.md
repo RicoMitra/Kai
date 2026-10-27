@@ -6,13 +6,13 @@ Pengguna meminta gpt-taste, emil-design-eng, ponytail serta pemeriksaan skill lo
 
 | Skill | Peran di Kai | Penerapan konkret |
 | --- | --- | --- |
-| [ponytail](C:/Users/RICO/.agents/skills/ponytail/SKILL.md) | Menjaga solusi minimum, mode full sesuai permintaan | Pakai kode/parser yang ada; stdlib SQLite; satu proses; tanpa abstraksi/IPC spekulatif |
-| [emil-design-eng](C:/Users/RICO/.codex/skills/emil-design-eng/SKILL.md) | Respons cepat dan motion beralasan | Feedback segera; animasi pendek/dapat dibalik; tidak menunda shortcut; reduced motion |
-| [apple-design](C:/Users/RICO/.codex/skills/apple-design/SKILL.md) | Kontinuitas bentuk, material, tipografi | Anchor atas tengah, nilai animasi dari keadaan layar saat ini, teks terbaca di kaca |
-| [gpt-taste](C:/Users/RICO/.codex/skills/gpt-tasteskill/SKILL.md) | Komposisi dan kontras | Hierarki ringkas, tombol terbaca, susunan panel terukur; hindari layout generik |
-| [brainstorming](C:/Users/RICO/.codex/skills/brainstorming/SKILL.md) | Memahami kebutuhan dan membandingkan arah desain | Pilihan arah A/B/C dan pertanyaan bertahap sebelum implementasi |
-| [projectstep](C:/Users/RICO/.codex/skills/projectstep/SKILL.md) | Konteks lintas sesi | AGENTS, sumber data, akses, keputusan, workflow dan bukti |
-| [verification-before-completion](C:/Users/RICO/.codex/skills/verification-before-completion/SKILL.md) | Klaim sesuai hasil nyata | 98/98 hanya untuk parser; UI/runtime tetap belum diuji |
+| ponytail (`%USERPROFILE%/.agents/skills/ponytail/SKILL.md`) | Menjaga solusi minimum, mode full sesuai permintaan | Pakai kode/parser yang ada; stdlib SQLite; satu proses; tanpa abstraksi/IPC spekulatif |
+| emil-design-eng (`%USERPROFILE%/.codex/skills/emil-design-eng/SKILL.md`) | Respons cepat dan motion beralasan | Feedback segera; animasi pendek/dapat dibalik; tidak menunda shortcut; reduced motion |
+| apple-design (`%USERPROFILE%/.codex/skills/apple-design/SKILL.md`) | Kontinuitas bentuk, material, tipografi | Anchor atas tengah, nilai animasi dari keadaan layar saat ini, teks terbaca di kaca |
+| gpt-taste (`%USERPROFILE%/.codex/skills/gpt-tasteskill/SKILL.md`) | Komposisi dan kontras | Hierarki ringkas, tombol terbaca, susunan panel terukur; hindari layout generik |
+| brainstorming (`%USERPROFILE%/.codex/skills/brainstorming/SKILL.md`) | Memahami kebutuhan dan membandingkan arah desain | Pilihan arah A/B/C dan pertanyaan bertahap sebelum implementasi |
+| projectstep (`%USERPROFILE%/.codex/skills/projectstep/SKILL.md`) | Konteks lintas sesi | AGENTS, sumber data, akses, keputusan, workflow dan bukti |
+| verification-before-completion (`%USERPROFILE%/.codex/skills/verification-before-completion/SKILL.md`) | Klaim sesuai hasil nyata | 98/98 hanya untuk parser; UI/runtime tetap belum diuji |
 
 `using-superpowers` dibaca sebagai panduan pemakaian skill. `end-with-script` dipertimbangkan untuk pemeliharaan artefak: Markdown adalah sumber native yang bisa diedit langsung; inventaris berulang disertai script. `find-skills` dibaca untuk discovery; pencarian marketplace/instalasi tidak diperlukan karena pengguna meminta skill yang sudah lokal.
 

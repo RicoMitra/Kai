@@ -1,6 +1,6 @@
 # Security and privacy
 
-Kai is a local Windows desktop prototype. The GitHub repository is private; private visibility is an access setting, not a claim that the application is fully hardened.
+Kai is a local Windows desktop prototype. The GitHub repository is **public** (since 27 October 2026). Public visibility makes the source readable by anyone; it is not a claim that the application is fully hardened.
 
 ## Keep personal material out of Git
 
@@ -26,7 +26,7 @@ If a real credential is exposed, revoke/rotate it first. Removing it from the cu
 
 Temporary conversion cleanup covers normal lifecycle events. A forced crash/power failure can leave scratch files. The current launcher is not an installer, and distributing a runtime bundle requires a separate dependency/license review.
 
-Some historical development documents contain owner-specific workstation paths, older decisions and local-only asset references. They are retained in the private repository for context. Re-review and sanitize them before making the repository public.
+Historical development documents keep older decisions and references to local-only assets for context. Owner-specific workstation paths were replaced with placeholders such as `%USERPROFILE%` and `<project root>` on 27 October 2026; `tools/inventory_skills.py` writes the same placeholders. Original reference photos and ZIP archives remain excluded.
 
 There is no web login, public upload service, remote SQL access, session-cookie layer or server-side account system. Web-specific protections such as RLS, login rate limiting and cookie flags must be designed if such a service is added; they are not represented as implemented here.
 

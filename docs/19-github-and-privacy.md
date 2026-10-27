@@ -1,6 +1,6 @@
 # GitHub publication and privacy review
 
-Date: **24 October 2026**. Repository requested: **RicoMitra/Kai**, **private**. The owner explicitly requested a detailed description and asked that their local privacy guidance be read before publication. That private file is not copied into the repository.
+Date: **24 October 2026**. Repository requested: **RicoMitra/Kai**, initially **private**. **Update 27 October 2026:** the repository is now **public** by the owner's decision; workstation paths in historical documents were replaced with placeholders, and the Kai 4.0 publication was checked for credentials and private files before pushing. The owner explicitly requested a detailed description and asked that their local privacy guidance be read before publication. That private file is not copied into the repository.
 
 ## Publication boundary
 
@@ -10,7 +10,7 @@ The local working branch is `codex/initial-publish`; the initial publication tar
 
 Committed material includes active/archival source modules, launcher/source, identity assets, Markdown documentation, selected generated-fixture screenshots and evidence. `.gitignore` excludes local runtime/model/cache/data files, credentials, logs, original owner ZIP archives, reference photos and generated release ZIPs. These local materials are preserved on disk; exclusion does not delete or rewrite them.
 
-Some historical development documents intentionally retain workstation paths and descriptions of private local references. Keep the repository private unless those documents and image rights are reviewed again. A source ZIP generated locally can include local design references through its own allowlist; do not assume that archive has the same boundary as Git staging.
+Historical development documents keep descriptions of local references, but owner-specific workstation paths are now placeholders (`%USERPROFILE%`, `<project root>`). Original reference photos stay excluded from Git. A source ZIP generated locally can include local design references through its own allowlist; do not assume that archive has the same boundary as Git staging.
 
 ## Applying the owner's privacy checklist
 

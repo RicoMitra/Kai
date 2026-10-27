@@ -1,8 +1,8 @@
 # Dokumentasi pengembangan Kai
 
-## Private GitHub publication
+## GitHub publication (public since 27 October 2026)
 
-The new English [project README](../README.md) is generated from [readme-source.md](readme-source.md). See [19 — GitHub and privacy](19-github-and-privacy.md) for the owner-requested private publication, dependency/secret review, repository boundary and unresolved controls; [SECURITY.md](../SECURITY.md) for the current security model. The [preceding README](history/README-before-github.md) remains a historical record. Current UI, features and memory limitations below still apply.
+The new English [project README](../README.md) is generated from [readme-source.md](readme-source.md). See [19 — GitHub and privacy](19-github-and-privacy.md) for the owner-requested publication (first private, public since 27 October 2026), dependency/secret review, repository boundary and unresolved controls; [SECURITY.md](../SECURITY.md) for the current security model. The [preceding README](history/README-before-github.md) remains a historical record. Current UI, features and memory limitations below still apply.
 
 ## Kai 4.0 — Dynamic Island redesign (27 October 2026, overrides 3.0 visuals)
 

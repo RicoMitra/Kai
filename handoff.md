@@ -6,9 +6,9 @@ LRCLIB's expected HTTP 404 for a missing catalog match previously propagated as 
 
 Verification: **44 unit tests passed**, including five isolated LRCLIB/cache matching tests and a widget test proving that unavailable/instrumental/retry messages replace old lyric layouts and hide stale scrolling. Appearance checks also passed. Live read-only API probes returned a known track successfully and a synthetic absent track as get=404/search=200 with zero records; a separate transient attempt produced the retry state. Only status/counts were inspected; copyrighted lyric text was not copied into the repository. No account playback was changed. These checks do not establish catalog coverage for every new song. Primary API contract: https://lrclib.net/docs.
 
-## Private GitHub publication — 24 October 2026
+## GitHub publication — 24 October 2026 (public since 27 October)
 
-Owner requested publication to a private `RicoMitra/Kai` repository and a complete English explanation. The owner's external privacy guidance was read before publication and is not copied into the repository. Kai now has its own project-root Git history; the inherited user-folder repository and placeholder remote are untouched. Local commits use a GitHub noreply identity.
+Owner requested publication to the `RicoMitra/Kai` repository (private at first, made public by the owner on 27 October 2026; workstation paths in documents were then replaced with placeholders) and a complete English explanation. The owner's external privacy guidance was read before publication and is not copied into the repository. Kai now has its own project-root Git history; the inherited user-folder repository and placeholder remote are untouched. Local commits use a GitHub noreply identity.
 
 `README.md` is now generated from **`docs/readme-source.md`** by `tools/build_readme.py`, covering the current experience, all five feature destinations/Settings, four conversion workflows, setup, data paths, architecture, tests, memory evidence and limitations. **`docs/history/README-before-github.md`** preserves the previous root README. **`SECURITY.md`** states the actual desktop security model, local plaintext-at-rest limitation and reporting rules. **`docs/19-github-and-privacy.md`** maps every item of the owner's privacy checklist to applicable controls, scope, findings and remaining work. **`docs/20-kai-4-dynamic-island.md`** is the active Kai 4.0 design reference: floating Dynamic Island capsule, Apple system accents, spring/eye/magnet/slide motion tokens, logo-only-as-app-icon rule and acceptance limits.
 
@@ -93,7 +93,7 @@ Cara pakai terbaru: klik island/Ctrl+Alt+Space → Transform; pilih/drop 1–2 f
 
 Regresi tambahan: `tools/check_transform.py`, lalu `tools/check_shelf_v3.py` dan suite test_*.py. Jalankan native UI/benchmark bergantian. DOCX/PDF kompleks, seluruh pemutar/perangkat fisik, DPI lain, bahasa OCR selain yang tersedia dan soak harian belum tervalidasi. Untuk rilis gunakan build_handoff.py kemudian build_release.py; source ZIP menyertakan modul/test/docs baru tanpa data pribadi.
 
-Disusun 23 Oktober 2026 untuk RICO dan pengembang/agen penerus. Root proyek: `C:/Users/RICO/OneDrive/ドキュメント/RICO/Kai`. Seluruh path relatif di dokumen ini berangkat dari root tersebut. Handoff adalah peta proyek dan keputusan, bukan perintah untuk mengaktifkan ulang fitur historis. Lampiran hasil generator mencatat setiap MD beserta semua judul bagiannya dan inventaris file proyek.
+Disusun 23 Oktober 2026 untuk RICO dan pengembang/agen penerus. Root proyek: `<project root>`. Seluruh path relatif di dokumen ini berangkat dari root tersebut. Handoff adalah peta proyek dan keputusan, bukan perintah untuk mengaktifkan ulang fitur historis. Lampiran hasil generator mencatat setiap MD beserta semua judul bagiannya dan inventaris file proyek.
 
 ## 1. Kondisi yang harus dipahami dahulu
 
@@ -165,7 +165,7 @@ Face ID, AirDrop, Find My iPhone, hotspot dan rekam layar pada referensi Apple h
 | `.gitignore` | Mengecualikan pycache, venv, DB, settings, token, model dan dist |
 | `handoff.md` | Hasil handoff di root; sumber narasi `docs/handoff-source.md`, generator `tools/build_handoff.py` |
 
-Logo awal pengguna berada di `C:/Users/RICO/Downloads/Minimalist Robot Mascot Icon.png`, disalin sebagai `assets/kai-original.png` dan hash pernah dibuktikan identik. `assets/kai.ico`, `kai-64.png`, `kai-128.png` adalah turunan format/resolusi, bukan identitas yang digambar ulang. Referensi terakhir disimpan sebagai `docs/references/sleeping-robot-capsule.png`; referensi yang dibatalkan ada di `robot-capsule-superseded.png`. Gambar awal tersimpan sebagai `iphone-dynamic-island.png`, `kai-ui-states.png`, `windows-acrylic-reference.png`, `island-music-new.png`, `island-shelf-new.png`, `productivity-features.png`, `adaptive-island.png`, `widget-direction.png`.
+Logo awal pengguna berada di `%USERPROFILE%/Downloads/Minimalist Robot Mascot Icon.png`, disalin sebagai `assets/kai-original.png` dan hash pernah dibuktikan identik. `assets/kai.ico`, `kai-64.png`, `kai-128.png` adalah turunan format/resolusi, bukan identitas yang digambar ulang. Referensi terakhir disimpan sebagai `docs/references/sleeping-robot-capsule.png`; referensi yang dibatalkan ada di `robot-capsule-superseded.png`. Gambar awal tersimpan sebagai `iphone-dynamic-island.png`, `kai-ui-states.png`, `windows-acrylic-reference.png`, `island-music-new.png`, `island-shelf-new.png`, `productivity-features.png`, `adaptive-island.png`, `widget-direction.png`.
 
 ## 5. Penjelasan setiap MD tanpa melewatkan berkas
 
@@ -239,7 +239,7 @@ Alur teks: salin → pengecualian/debounce → Store.clipboard → UI search/pin
 
 Alur Notes: ketik → dirty → debounce 350 ms → save_note; pindah/close memanggil flush; centang per item mengubah Markdown lokal dan disimpan; pin memengaruhi urutan. Shutdown menghentikan watchers/hotkey/Clipboard/intake, flush panel, cancel/reap worker, unsubscribe event, tutup compositor/tray/jendela dan lepaskan lock.
 
-Data logis: `%LOCALAPPDATA%/Kai/`. Di laptop ini setup melalui Codex MSIX pernah dialihkan secara fisik ke `C:/Users/RICO/AppData/Local/Packages/OpenAI.Codex_2p2nqsd0c76g0/LocalCache/Local/Kai/`. Runtime logis `runtime/Scripts/python.exe` / `pythonw.exe` dan data tetap di luar source OneDrive. Launcher mencoba normal lalu fallback fisik; saat fallback, LOCALAPPDATA anak disesuaikan agar DB/settings/token lama tetap sama. **Keberhasilan dari Codex tidak membuktikan Explorer**; perbaikan pernah dikonfirmasi pengguna dan path diperiksa GetFinalPathNameByHandle.
+Data logis: `%LOCALAPPDATA%/Kai/`. Di laptop ini setup melalui Codex MSIX pernah dialihkan secara fisik ke `%USERPROFILE%/AppData/Local/Packages/OpenAI.Codex_2p2nqsd0c76g0/LocalCache/Local/Kai/`. Runtime logis `runtime/Scripts/python.exe` / `pythonw.exe` dan data tetap di luar source OneDrive. Launcher mencoba normal lalu fallback fisik; saat fallback, LOCALAPPDATA anak disesuaikan agar DB/settings/token lama tetap sama. **Keberhasilan dari Codex tidak membuktikan Explorer**; perbaikan pernah dikonfirmasi pengguna dan path diperiksa GetFinalPathNameByHandle.
 
 | Di direktori data Kai | Sifat |
 | --- | --- |
@@ -252,7 +252,7 @@ Data logis: `%LOCALAPPDATA%/Kai/`. Di laptop ini setup melalui Codex MSIX pernah
 | `logs/session.json` | Versi/PID/daftar fitur/jam/hotkey tersedia; tidak memuat isi clipboard/token |
 | `runtime/`, `kai.lock` | Environment Python dan singleton; runtime bukan bagian source ZIP |
 
-Original screenshot pada laptop ini: `C:/Users/RICO/OneDrive/Pictures/Screenshots`. Downloads berasal dari Windows Known Folder (umumnya `C:/Users/RICO/Downloads`); folder khusus browser di tempat lain belum dipantau. Jangan menghapus cache paket Codex tanpa migrasi/cadangan data pribadi. Setup dari Explorer dapat memasang runtime normal tetapi tidak otomatis memigrasikan DB/token dari lokasi lama.
+Original screenshot pada laptop ini: `%USERPROFILE%/OneDrive/Pictures/Screenshots`. Downloads berasal dari Windows Known Folder (umumnya `%USERPROFILE%/Downloads`); folder khusus browser di tempat lain belum dipantau. Jangan menghapus cache paket Codex tanpa migrasi/cadangan data pribadi. Setup dari Explorer dapat memasang runtime normal tetapi tidak otomatis memigrasikan DB/token dari lokasi lama.
 
 ## 8. Privasi, quota, performa dan batas
 
@@ -585,7 +585,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 
 - Handoff Kai — dari ide awal hingga versi 3.0
 - Lyrics lookup correction — 24 October 2026
-- Private GitHub publication — 24 October 2026
+- GitHub publication — 24 October 2026 (public since 27 October)
 - Latest UI correction — 24 October 2026
 - Final saved state and owner-requested shutdown
 - Latest verification and memory target — 23 October 2026
@@ -649,7 +649,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 ### [docs/README.md](docs/README.md)
 
 - Dokumentasi pengembangan Kai
-- Private GitHub publication
+- GitHub publication (public since 27 October 2026)
 - Kai 4.0 — Dynamic Island redesign (27 October 2026, overrides 3.0 visuals)
 - Latest UI correction — 24 October 2026
 - Latest approved UI — 23 October 2026

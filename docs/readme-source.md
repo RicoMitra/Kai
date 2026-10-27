@@ -165,7 +165,7 @@ No speech model, microphone setup, Ollama, LLM server, Node.js, browser engine, 
 
 ### First run
 
-1. Clone this private repository using an account with access:
+1. Clone this repository:
 
    ```powershell
    git clone https://github.com/RicoMitra/Kai.git
@@ -289,7 +289,7 @@ MSIX redirection can change the physical path as described above. User data stay
 
 Conversion text is not sent to an AI/cloud service. Windows OCR runs locally. Uncached lyric requests and optional Spotify authorization use external services. There is no microphone capture, active speech model, WhatsApp notification permission, or application analytics/telemetry pipeline in the active desktop flow.
 
-The publication applies the owner's privacy guidance to secrets, repository contents, parameterized SQL, input limits, escaped document text, URL validation and dependency scanning. Web-only controls such as session cookies and row-level security do not apply to the current architecture. See [SECURITY.md](SECURITY.md) and [the publication review](docs/19-github-and-privacy.md) for scope, evidence, and unresolved work. A private repository is an access setting, not a substitute for these controls.
+The publication applies the owner's privacy guidance to secrets, repository contents, parameterized SQL, input limits, escaped document text, URL validation and dependency scanning. Web-only controls such as session cookies and row-level security do not apply to the current architecture. See [SECURITY.md](SECURITY.md) and [the publication review](docs/19-github-and-privacy.md) for scope, evidence, and unresolved work. Repository visibility (now public) is not a substitute for these controls.
 
 ## Verification
 
@@ -371,6 +371,6 @@ Voice, WhatsApp, weather, calendar, focus/timers, system monitoring and applicat
 
 ## Licensing and attribution
 
-No project-wide open-source license has been selected. Do not infer that this private repository is freely redistributable. The original robot identity was supplied by the owner; third-party reference material is not relicensed by this repository.
+No project-wide open-source license has been selected. Public visibility does not grant a license; do not infer that the code is freely redistributable. The original robot identity was supplied by the owner; third-party reference material is not relicensed by this repository.
 
 Kai uses open-source dependencies and native Windows APIs. Their individual licenses and distribution obligations still apply. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), especially Qt/PySide6 and PDFium notices if building a bundled binary distribution. LRCLIB and Spotify are external services with their own terms. Design references informed the native Qt implementation; paid web UI components were not copied into the runtime.
