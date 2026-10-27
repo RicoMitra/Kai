@@ -1,0 +1,4 @@
+# Vercel deploys only the static download site; the Python app stays out.
+/*
+!/site
+!/vercel.json
