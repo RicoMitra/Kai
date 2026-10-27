@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kai — A Dynamic Island for Windows</title>
+  <meta name="description" content="Kai is a free, local-first Dynamic Island for Windows: clipboard history, quick notes, a smart file shelf, music controls and fast file conversion at the top of your screen.">
+  <meta name="theme-color" content="#05070d">
+  <meta property="og:title" content="Kai — A Dynamic Island for Windows">
+  <meta property="og:description" content="Clipboard, notes, files, music and conversion — one black island at the top of your desktop.">
+  <meta property="og:image" content="assets/og.jpg">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top" aria-label="Kai home">
+        <img src="assets/kai-logo.webp" alt="" width="28" height="28">
+        <span>Kai</span>
+      </a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="#features">Features</a>
+        <a href="#get-started">Get started</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/RicoMitra/Kai" rel="noopener">GitHub</a>
+      </nav>
+      <a class="btn btn-light btn-sm" data-download href="#get-started">Download</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero" id="top">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <div class="badges">
+            <span class="badge">v4.0 · Windows 10/11</span>
+            <span class="badge"><span class="faint">STATUS:</span> <i class="dot"></i> Open source</span>
+          </div>
+          <h1 class="display">
+            <span class="dim">Your desktop,</span><br>
+            <em>one island</em> away.
+          </h1>
+          <p class="lead">Kai lives at the top of your screen. Hover to see the time, click to reach your clipboard, notes, files, music and quick file conversion — then it slips away again.</p>
+          <div class="cta">
+            <a class="btn btn-blue" data-download href="#get-started">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 2.3 6.7 1.5v5.6H1zm6.4-.9L15 .3v6.8H7.4zM1 7.8h5.7v5.6L1 12.6zm6.4 0H15v6.9l-7.6-1.1z"/></svg>
+              Download for Windows
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+            <a class="btn btn-ghost" href="https://github.com/RicoMitra/Kai" rel="noopener">View on GitHub</a>
+          </div>
+          <p class="note">Free · Windows 10/11 64-bit · needs Python 3.12 (setup is one double-click)</p>
+        </div>
+
+        <div class="stage" aria-label="Animated preview of the Kai island">
+          <svg class="plane" viewBox="0 0 600 420" aria-hidden="true">
+            <g fill="none" stroke="currentColor">
+              <path d="M300 70 560 210 300 350 40 210Z" opacity=".55"/>
+              <path d="M300 110 485 210 300 310 115 210Z" opacity=".3"/>
+              <path d="M300 30 640 210 300 390 -40 210Z" opacity=".15"/>
+              <path d="M170 140 430 280M430 140 170 280" opacity=".12"/>
+            </g>
+            <g fill="#fff"><circle cx="300" cy="70" r="2"/><circle cx="560" cy="210" r="2"/><circle cx="40" cy="210" r="2"/><circle cx="300" cy="350" r="2"/></g>
+            <text x="360" y="300" transform="rotate(-28 360 300)" class="plane-label">LOCAL · PRIVATE · FAST</text>
+          </svg>
+          <div class="screen">
+            <div class="island" data-state="clock" role="img" aria-label="Kai island showing the time">
+              <div class="face face-pill"><i></i><i></i></div>
+              <div class="face face-clock"><b class="time">23:49</b><span><small>Tuesday</small>27 October</span></div>
+              <div class="face face-media"><span class="cover"></span><span class="meta"><b>Midnight drive</b><small>Now playing</small><i class="bar"><i></i></i></span><span class="play"></span></div>
+              <div class="face face-toast"><span class="glyph">↗</span><span class="meta"><small>LINK</small><b>Link copied</b></span><span class="chip">Open</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wrap built">
+        <span class="faint">BUILT NATIVELY WITH</span>
+        <ul>
+          <li>Python</li><li>PySide6 · Qt</li><li>SQLite</li><li>Windows SMTC</li><li>Core Audio</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+      <div class="wrap">
+        <p class="eyebrow">Five tools, one island</p>
+        <h2 class="display h2">Everything you reach for, <em>without opening an app.</em></h2>
+
+        <div class="features">
+          <article class="card feature wide reveal">
+            <div class="feature-copy">
+              <h3><i class="accent" style="--c:#ff9f0a"></i>Fast Transform</h3>
+              <p>Drop a file onto the island and convert it locally: PNG/JPG → PDF, PDF → Markdown or Word, Word → PDF. Nothing is uploaded.</p>
+            </div>
+            <img src="assets/transform.webp" alt="Fast Transform page with a drop zone and FROM/TO format chips" loading="lazy" width="814" height="499">
+          </article>
+
+          <article class="card feature wide reveal">
+            <div class="feature-copy">
+              <h3><i class="accent" style="--c:#30d158"></i>Music</h3>
+              <p>Control whatever is playing in Windows — Spotify or any media app. Seek, volume and synced lyrics, tinted by the album cover.</p>
+            </div>
+            <img src="assets/music.webp" alt="Music page with album colour, controls and wrapped lyrics" loading="lazy" width="814" height="454">
+          </article>
+
+          <article class="card feature reveal">
+            <h3><i class="accent" style="--c:#bf5af2"></i>Smart Shelf</h3>
+            <p>New screenshots and downloads land here automatically. Drag them straight into any app.</p>
+            <img src="assets/shelf.webp" alt="Smart Shelf grid with image thumbnails and a preview" loading="lazy" width="814" height="574">
+          </article>
+
+          <article class="card feature reveal">
+            <h3><i class="accent" style="--c:#ffd60a"></i>Smarter Notes</h3>
+            <p>Type, press Enter, tick it off. A tiny checklist that saves itself.</p>
+            <img src="assets/notes.webp" alt="Notes list with a new-note field" loading="lazy" width="814" height="514">
+          </article>
+
+          <article class="card feature clip reveal">
+            <h3><i class="accent" style="--c:#0a84ff"></i>Smart Clipboard</h3>
+            <p>Your last 80 copied texts and links, searchable. Press Enter to paste back into the app you were using.</p>
+            <ul class="clips" aria-hidden="true">
+              <li><span class="b blue">↗</span><span><b>https://github.com/RicoMitra/Kai</b><small>Link · 23:41</small></span></li>
+              <li><span class="b">T</span><span><b>Meeting moved to Thursday, 10:00</b><small>Text · 23:38</small></span></li>
+              <li><span class="b">T</span><span><b>const island = new Kai()</b><small>Text · 23:30</small><em>PIN</em></span></li>
+            </ul>
+          </article>
+
+          <article class="card feature reveal">
+            <h3><i class="accent" style="--c:#ffffff"></i>Always there, never in the way</h3>
+            <p>A small black pill with two eyes that follow your pointer. Hover for the clock, move away and it tucks itself back in.</p>
+            <div class="mini">
+              <img src="assets/clock.webp" alt="Hover capsule with the clock and date" loading="lazy" width="484" height="106">
+              <img src="assets/media.webp" alt="Hover capsule playing music" loading="lazy" width="484" height="106">
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Numbers -->
+    <section class="section numbers-section">
+      <div class="wrap numbers">
+        <div class="reveal"><b>0</b><span>cloud uploads — everything stays on your PC</span></div>
+        <div class="reveal"><b>5</b><span>everyday tools in one place</span></div>
+        <div class="reveal"><b>1</b><span>hover away, any time</span></div>
+      </div>
+    </section>
+
+    <!-- Get started -->
+    <section class="section" id="get-started">
+      <div class="wrap start">
+        <div class="start-intro">
+          <h2 class="display h2">Get started</h2>
+          <p class="muted">Free and open source. Download, run setup once, and Kai is on your desktop.</p>
+        </div>
+
+        <div class="card rows reveal">
+          <h3 class="card-title">Desktop</h3>
+          <p class="muted">The full Kai app for your Windows PC.</p>
+          <div class="row">
+            <span>Windows 10/11 <small>64-bit</small></span>
+            <a class="btn btn-outline btn-sm" data-download href="#">Download</a>
+          </div>
+          <div class="row">
+            <span>Source code <small>GitHub</small></span>
+            <a class="btn btn-outline btn-sm" href="https://github.com/RicoMitra/Kai" rel="noopener">Open</a>
+          </div>
+          <div class="row">
+            <span>Python 3.12 <small>required once</small></span>
+            <a class="btn btn-outline btn-sm" href="https://www.python.org/downloads/windows/" rel="noopener">Get Python</a>
+          </div>
+        </div>
+
+        <div class="card steps reveal">
+          <h3 class="card-title">Setup in 3 steps</h3>
+          <ol>
+            <li><b>Download &amp; unzip</b><span>Extract the ZIP to a folder you keep, like Documents\Kai.</span></li>
+            <li><b>Run “Setup Kai.cmd”</b><span>Installs Kai's packages privately in %LOCALAPPDATA%\Kai. No admin needed.</span></li>
+            <li><b>Open “Kai.exe”</b><span>Move your pointer to the top centre of the screen. That's it.</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacy -->
+    <section class="section" id="privacy">
+      <div class="wrap privacy card reveal">
+        <div>
+          <p class="eyebrow">Private by design</p>
+          <h2 class="display h2">Your clipboard is <em>yours.</em></h2>
+        </div>
+        <ul class="checks">
+          <li>Notes, clipboard history and Shelf live in <code>%LOCALAPPDATA%\Kai</code> on your PC.</li>
+          <li>No account, no analytics, no telemetry. File conversion and OCR run locally.</li>
+          <li>Password-manager copies are skipped, and history can be paused or cleared any time.</li>
+          <li>Network only for optional lyrics (LRCLIB) and optional Spotify sign-in.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="wrap faq">
+        <h2 class="display h2">Questions</h2>
+        <div class="faq-list">
+          <details>
+            <summary>Is Kai free?</summary>
+            <p>Yes. Kai is a free, open-source personal project by RicoMitra. There is no paid tier.</p>
+          </details>
+          <details>
+            <summary>Why do I need Python?</summary>
+            <p>Kai is built with Python and Qt. <b>Setup Kai.cmd</b> uses Python 3.12 once to install Kai's own private copy of its packages; Kai.exe then starts it without a console window.</p>
+          </details>
+          <details>
+            <summary>Does it work with Spotify?</summary>
+            <p>Yes — Music controls any player that shows up in Windows media controls, including Spotify. Lyrics come from LRCLIB when available.</p>
+          </details>
+          <details>
+            <summary>Will it slow my laptop down?</summary>
+            <p>Kai is native, not a browser app. It sleeps as a small pill, animations stop when idle, and music libraries load only while Music is open.</p>
+          </details>
+          <details>
+            <summary>Windows says the app is from an unknown publisher.</summary>
+            <p>Kai.exe is a small unsigned launcher. Choose <b>More info → Run anyway</b>, or read its source in <code>tools/KaiLauncher.cs</code> first.</p>
+          </details>
+          <details>
+            <summary>How do I quit or uninstall?</summary>
+            <p>Right-click the Kai icon in the tray and choose <b>Quit Kai</b>. To uninstall, delete the Kai folder and <code>%LOCALAPPDATA%\Kai</code>.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="section final">
+      <div class="wrap final-inner reveal">
+        <img src="assets/kai-logo.webp" alt="" width="72" height="72">
+        <h2 class="display h2">Put Kai on your desktop.</h2>
+        <a class="btn btn-blue" data-download href="#get-started">Download for Windows <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span>© 2026 Kai · made by <a href="https://github.com/RicoMitra" rel="noopener">RicoMitra</a></span>
+      <span class="faint">Not affiliated with Apple. “Dynamic Island” describes the interaction style.</span>
+      <a href="https://github.com/RicoMitra/Kai" rel="noopener">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    // Change this when a GitHub Release exists.
+    window.DOWNLOAD_URL = 'https://github.com/RicoMitra/Kai/archive/refs/heads/main.zip';
+  </script>
+  <script src="script.js" defer></script>
+</body>
+</html>

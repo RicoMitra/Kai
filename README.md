@@ -152,6 +152,10 @@ The Music page controls an existing Windows media session through **SMTC** and s
 
 Media/audio libraries live in an on-demand worker and are released when Music closes. Automatic volume/headset popups are not kept running outside Music. Actual player support varies; passing a widget test does not prove that every Spotify/device combination accepts every command.
 
+## Download website
+
+`site/` is a static download page (HTML, CSS and a little JavaScript; no build step) styled after the reference pages in [site/DESIGN.md](site/DESIGN.md). Deploy it free on Vercel: import this repository, set **Root Directory** to `site`, framework **Other**, no build command. The Download buttons point to the GitHub source ZIP; change `DOWNLOAD_URL` in `site/index.html` once a GitHub Release exists. Preview locally with `python -m http.server 4173 --directory site`.
+
 ## Install and launch
 
 ### Requirements
@@ -335,6 +339,7 @@ Kai/
 ├── assets/                   Owner-provided robot identity and icon sizes
 ├── tools/                    Checks, benchmarks, builders, launcher source
 ├── docs/                     Design decisions, status, architecture and history
+├── site/                     Static download website (Vercel), design in site/DESIGN.md
 ├── artifacts/                Selected generated screenshots and evidence
 ├── README.md                 Generated from docs/readme-source.md
 ├── SECURITY.md               Current security model and reporting guidance

@@ -10,7 +10,7 @@ Verification: **44 unit tests passed**, including five isolated LRCLIB/cache mat
 
 Owner requested publication to the `RicoMitra/Kai` repository (private at first, made public by the owner on 27 October 2026; workstation paths in documents were then replaced with placeholders) and a complete English explanation. The owner's external privacy guidance was read before publication and is not copied into the repository. Kai now has its own project-root Git history; the inherited user-folder repository and placeholder remote are untouched. Local commits use a GitHub noreply identity.
 
-`README.md` is now generated from **`docs/readme-source.md`** by `tools/build_readme.py`, covering the current experience, all five feature destinations/Settings, four conversion workflows, setup, data paths, architecture, tests, memory evidence and limitations. **`docs/history/README-before-github.md`** preserves the previous root README. **`SECURITY.md`** states the actual desktop security model, local plaintext-at-rest limitation and reporting rules. **`docs/19-github-and-privacy.md`** maps every item of the owner's privacy checklist to applicable controls, scope, findings and remaining work. **`docs/20-kai-4-dynamic-island.md`** is the active Kai 4.0 design reference: floating Dynamic Island capsule, Apple system accents, spring/eye/magnet/slide motion tokens, logo-only-as-app-icon rule and acceptance limits.
+`README.md` is now generated from **`docs/readme-source.md`** by `tools/build_readme.py`, covering the current experience, all five feature destinations/Settings, four conversion workflows, setup, data paths, architecture, tests, memory evidence and limitations. **`docs/history/README-before-github.md`** preserves the previous root README. **`SECURITY.md`** states the actual desktop security model, local plaintext-at-rest limitation and reporting rules. **`docs/19-github-and-privacy.md`** maps every item of the owner's privacy checklist to applicable controls, scope, findings and remaining work. **`site/DESIGN.md`** is the design and content reference for the static Vercel download site in `site/` (Claude download page structure, Sentry/Luminai black-to-blue hero, honest Python 3.12 requirement, GitHub ZIP download). **`docs/20-kai-4-dynamic-island.md`** is the active Kai 4.0 design reference: floating Dynamic Island capsule, Apple system accents, spring/eye/magnet/slide motion tokens, logo-only-as-app-icon rule and acceptance limits.
 
 The initial direct audit was clean, but the installed active closure revealed advisories in requests/urllib3/idna/certifi. Security-pinned versions 2.33.0/2.8.0/3.15/2026.10.19 are installed only inside Kai's runtime and pinned in requirements; older global Python packages remain untouched. pip-audit 2.10.1 then reported no known vulnerabilities across the 26-package active Python closure, without skipped packages. `tools/export_active_dependencies.py` reproduces that closure without scanning unrelated global speech/development packages. `artifacts/productivity/dependency-audit-verification.json` records package versions and advisory IDs without secrets. Gitleaks staged/history scans are required before push; reports and tooling remain outside the project. Weekly dependency checks are configured in `.github/dependabot.yml`.
 
@@ -347,7 +347,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 
 ## Lampiran A. Inventaris seluruh MD dan heading
 
-30 MD sumber/pendukung + handoff.md keluaran. Daftar berikut dibaca dari berkas sebenarnya; heading arsip tetap dicantumkan.
+31 MD sumber/pendukung + handoff.md keluaran. Daftar berikut dibaca dari berkas sebenarnya; heading arsip tetap dicantumkan.
 
 ### [AGENTS.md](AGENTS.md)
 
@@ -633,6 +633,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 - Smart Shelf
 - Contextual actions
 - Music
+- Download website
 - Install and launch
 - Requirements
 - First run
@@ -703,6 +704,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 - Smart Shelf
 - Contextual actions
 - Music
+- Download website
 - Install and launch
 - Requirements
 - First run
@@ -725,6 +727,16 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 - Dependency and secret checks
 - Reporting
 
+### [site/DESIGN.md](site/DESIGN.md)
+
+- Kai download site — design reference
+- Prinsip
+- Token
+- Struktur halaman
+- Gerak
+- Download
+- Deploy (Vercel Hobby, gratis)
+
 ### [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 
 - Dependensi dan lisensi
@@ -736,6 +748,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 Inventaris source, aset, dokumen, arsip, paket dan bukti yang ada saat build; mengecualikan runtime, .git, venv dan pycache. Data pengguna berada di luar pohon ini.
 
 ```text
+.claude/launch.json
 .gitattributes
 .github/dependabot.yml
 .gitignore
@@ -908,6 +921,20 @@ kai.zip
 README.md
 SECURITY.md
 Setup Kai.cmd
+site/assets/clipboard.webp
+site/assets/clock.webp
+site/assets/kai-logo.webp
+site/assets/media.webp
+site/assets/music.webp
+site/assets/notes.webp
+site/assets/og.jpg
+site/assets/shelf.webp
+site/assets/transform.webp
+site/DESIGN.md
+site/favicon.png
+site/index.html
+site/script.js
+site/styles.css
 THIRD_PARTY_NOTICES.md
 tools/build_handoff.py
 tools/build_launcher.py
