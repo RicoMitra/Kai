@@ -921,7 +921,6 @@ kai.zip
 README.md
 SECURITY.md
 Setup Kai.cmd
-site/assets/clipboard.webp
 site/assets/clock.webp
 site/assets/kai-logo.webp
 site/assets/media.webp
@@ -935,6 +934,7 @@ site/favicon.png
 site/index.html
 site/script.js
 site/styles.css
+site/vercel.json
 THIRD_PARTY_NOTICES.md
 tools/build_handoff.py
 tools/build_launcher.py

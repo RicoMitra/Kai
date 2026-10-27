@@ -4,6 +4,12 @@
 
 **A native Windows Dynamic Island for clipboard history, quick notes, a smart file shelf, music, and focused file conversion.**
 
+<p>
+  <a href="https://kai-inky.vercel.app"><b>⬇ Download Kai for Windows</b></a> ·
+  <a href="https://kai-inky.vercel.app">Website</a> ·
+  <a href="#install-and-launch">Setup guide</a>
+</p>
+
 Kai lives at the top center of the desktop. It stays small until needed, expands near the pointer, and opens its controls inside the island. The aim is to make frequent desktop actions available without repeatedly opening a conventional application window.
 
 Created by [RicoMitra](https://github.com/RicoMitra). Current application version: **4.0.0** (27 October 2026): a floating, iPhone-style Dynamic Island redesign with springy motion, pointer-aware eyes and Apple system accents. See [the 4.0 design spec](docs/20-kai-4-dynamic-island.md). The interface is English. Some development documents preserve the original Indonesian planning history.
@@ -153,6 +159,8 @@ The Music page controls an existing Windows media session through **SMTC** and s
 Media/audio libraries live in an on-demand worker and are released when Music closes. Automatic volume/headset popups are not kept running outside Music. Actual player support varies; passing a widget test does not prove that every Spotify/device combination accepts every command.
 
 ## Download website
+
+Live site: **https://kai-inky.vercel.app**.
 
 `site/` is a static download page (HTML, CSS and a little JavaScript; no build step) styled after the reference pages in [site/DESIGN.md](site/DESIGN.md). Deploy it free on Vercel: import this repository, set **Root Directory** to `site`, framework **Other**, no build command. The Download buttons point to the GitHub source ZIP; change `DOWNLOAD_URL` in `site/index.html` once a GitHub Release exists. Preview locally with `python -m http.server 4173 --directory site`.
 
