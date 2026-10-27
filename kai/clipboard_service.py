@@ -55,7 +55,7 @@ class ClipboardHistory(QObject):
         mime=QMimeData();mime.setData('application/x-kai-history',b'1');mime.setText(row['content'])
         self.clipboard.setMimeData(mime);return True
 
-    def clear(self):self.store.clear_clips();self.changed.emit()
+    def clear(self,include_pinned=False):self.store.clear_clips(include_pinned);self.changed.emit()
     def remove(self,identifier):self.store.remove_clip(identifier);self.changed.emit()
     def stop(self):
         self._stopped=True;self.pending.stop()

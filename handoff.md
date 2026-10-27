@@ -10,7 +10,7 @@ Verification: **44 unit tests passed**, including five isolated LRCLIB/cache mat
 
 Owner requested publication to a private `RicoMitra/Kai` repository and a complete English explanation. The owner's external privacy guidance was read before publication and is not copied into the repository. Kai now has its own project-root Git history; the inherited user-folder repository and placeholder remote are untouched. Local commits use a GitHub noreply identity.
 
-`README.md` is now generated from **`docs/readme-source.md`** by `tools/build_readme.py`, covering the current experience, all five feature destinations/Settings, four conversion workflows, setup, data paths, architecture, tests, memory evidence and limitations. **`docs/history/README-before-github.md`** preserves the previous root README. **`SECURITY.md`** states the actual desktop security model, local plaintext-at-rest limitation and reporting rules. **`docs/19-github-and-privacy.md`** maps every item of the owner's privacy checklist to applicable controls, scope, findings and remaining work.
+`README.md` is now generated from **`docs/readme-source.md`** by `tools/build_readme.py`, covering the current experience, all five feature destinations/Settings, four conversion workflows, setup, data paths, architecture, tests, memory evidence and limitations. **`docs/history/README-before-github.md`** preserves the previous root README. **`SECURITY.md`** states the actual desktop security model, local plaintext-at-rest limitation and reporting rules. **`docs/19-github-and-privacy.md`** maps every item of the owner's privacy checklist to applicable controls, scope, findings and remaining work. **`docs/20-kai-4-dynamic-island.md`** is the active Kai 4.0 design reference: floating Dynamic Island capsule, Apple system accents, spring/eye/magnet/slide motion tokens, logo-only-as-app-icon rule and acceptance limits.
 
 The initial direct audit was clean, but the installed active closure revealed advisories in requests/urllib3/idna/certifi. Security-pinned versions 2.33.0/2.8.0/3.15/2026.10.19 are installed only inside Kai's runtime and pinned in requirements; older global Python packages remain untouched. pip-audit 2.10.1 then reported no known vulnerabilities across the 26-package active Python closure, without skipped packages. `tools/export_active_dependencies.py` reproduces that closure without scanning unrelated global speech/development packages. `artifacts/productivity/dependency-audit-verification.json` records package versions and advisory IDs without secrets. Gitleaks staged/history scans are required before push; reports and tooling remain outside the project. Weekly dependency checks are configured in `.github/dependabot.yml`.
 
@@ -347,11 +347,13 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 
 ## Lampiran A. Inventaris seluruh MD dan heading
 
-29 MD sumber/pendukung + handoff.md keluaran. Daftar berikut dibaca dari berkas sebenarnya; heading arsip tetap dicantumkan.
+30 MD sumber/pendukung + handoff.md keluaran. Daftar berikut dibaca dari berkas sebenarnya; heading arsip tetap dicantumkan.
 
 ### [AGENTS.md](AGENTS.md)
 
 - Panduan kerja Kai
+- Kai 4.0 layout refresh (27 October 2026)
+- Kai 4.0 — Dynamic Island redesign (27 October 2026, overrides 3.0 visuals)
 - Latest UI correction — 24 October 2026
 - Latest owner direction (overrides historical notes below)
 - Revisi aktif 3.0.0 — 23 Oktober 2026
@@ -433,6 +435,8 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 ### [docs/07-status-dan-verifikasi.md](docs/07-status-dan-verifikasi.md)
 
 - Status dan verifikasi aktual
+- Kai 4.0 layout refresh (27 October 2026)
+- Kai 4.0 — Dynamic Island redesign (27 October 2026, overrides 3.0 visuals)
 - Lyrics lookup correction — 24 October 2026
 - Latest UI correction — 24 October 2026
 - Final saved state and owner-requested shutdown
@@ -563,6 +567,20 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 - Secret scanning
 - Documentation and reviewable evidence
 
+### [docs/20-kai-4-dynamic-island.md](docs/20-kai-4-dynamic-island.md)
+
+- Kai 4.0 — Dynamic Island design reference
+- Kai 4.0 layout refresh (27 October 2026)
+- 1. Prinsip
+- 2. Token
+- Warna (Apple system dark)
+- Bentuk dan ukuran (DIP)
+- Tipografi
+- 3. Gerak
+- 4. State dan isi
+- 5. Kontrak yang tidak berubah
+- 6. Penerimaan
+
 ### [docs/handoff-source.md](docs/handoff-source.md)
 
 - Handoff Kai — dari ide awal hingga versi 3.0
@@ -603,9 +621,11 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 - Kai
 - Contents
 - Experience and visual design
+- Hover
 - Fast Transform
 - Music
 - Notes
+- Smart Shelf
 - Features
 - Fast Transform
 - Smart Clipboard
@@ -630,6 +650,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 
 - Dokumentasi pengembangan Kai
 - Private GitHub publication
+- Kai 4.0 — Dynamic Island redesign (27 October 2026, overrides 3.0 visuals)
 - Latest UI correction — 24 October 2026
 - Latest approved UI — 23 October 2026
 - Urutan baca
@@ -670,9 +691,11 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 - Kai
 - Contents
 - Experience and visual design
+- Hover
 - Fast Transform
 - Music
 - Notes
+- Smart Shelf
 - Features
 - Fast Transform
 - Smart Clipboard
@@ -770,6 +793,10 @@ artifacts/productivity/v3-capsule.png
 artifacts/productivity/v3-context.png
 artifacts/productivity/v3-notes.png
 artifacts/productivity/v3-shelf.png
+artifacts/productivity/v4-clipboard.png
+artifacts/productivity/v4-clock.png
+artifacts/productivity/v4-compact.png
+artifacts/productivity/v4-shelf.png
 artifacts/redesign/compact.png
 artifacts/redesign/composition-abi.txt
 artifacts/redesign/glass-accent-False.png
@@ -793,6 +820,7 @@ artifacts/redesign/page-Timer.png
 artifacts/redesign/redesign-verification.json
 artifacts/redesign/shelf-widget.png
 assets/kai-128.png
+assets/kai-256.png
 assets/kai-64.png
 assets/kai-original.png
 assets/kai.ico
@@ -818,6 +846,7 @@ docs/16-kai-productivity.md
 docs/17-revisi-shelf-notes-dan-context.md
 docs/18-notes-transform-dan-musik.md
 docs/19-github-and-privacy.md
+docs/20-kai-4-dynamic-island.md
 docs/handoff-source.md
 docs/history/README-before-github.md
 docs/readme-source.md

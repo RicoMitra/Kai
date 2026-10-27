@@ -16,13 +16,16 @@ def main():
     assets = ROOT / 'assets'
     source = QImage(str(assets / 'kai-original.png'))
     if source.isNull(): raise RuntimeError('Logo Kai tidak terbaca')
+    # Kai 4.0: HD 2048 master; trim the dark margin so the robot fills small icons.
+    margin = round(source.width() * .1)
+    source = source.copy(margin, margin, source.width() - 2 * margin, source.height() - 2 * margin)
     frames = []
     for size in (16, 20, 24, 32, 40, 48, 64, 128, 256):
         image = source.scaled(size, size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         buffer = QBuffer(); buffer.open(QIODevice.WriteOnly)
         image.save(buffer, 'PNG')
         frames.append((size, bytes(buffer.data())))
-        if size in (64, 128): image.save(str(assets / f'kai-{size}.png'))
+        if size in (64, 128, 256): image.save(str(assets / f'kai-{size}.png'))
     offset = 6 + 16 * len(frames)
     icon = struct.pack('<HHH', 0, 1, len(frames))
     for size, data in frames:

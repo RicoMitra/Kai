@@ -1,8 +1,9 @@
 {
   "white_eyes_restored": true,
   "line_navigation_without_labels": true,
+  "hidden_render_no_pointer_motion": true,
   "unnecessary_transform_hints_removed": true,
-  "top_edge_attached": true,
+  "floating_capsule": true,
   "transform_two_columns_fit": true,
   "lyrics_wrapped": true,
   "album_tint_media_only": true,

@@ -1,12 +1,12 @@
 # Kai
 
-<img src="assets/kai-128.png" alt="Kai robot identity" width="80">
+<img src="assets/kai-256.png" alt="Kai robot identity" width="80">
 
 **A native Windows Dynamic Island for clipboard history, quick notes, a smart file shelf, music, and focused file conversion.**
 
 Kai lives at the top center of the desktop. It stays small until needed, expands near the pointer, and opens its controls inside the island. The aim is to make frequent desktop actions available without repeatedly opening a conventional application window.
 
-Created by [RicoMitra](https://github.com/RicoMitra). Current application version: **3.0.0**, with the white-eye and line-navigation refinement from **24 October 2026**. The interface is English. Some development documents preserve the original Indonesian planning history.
+Created by [RicoMitra](https://github.com/RicoMitra). Current application version: **4.0.0** (27 October 2026): a floating, iPhone-style Dynamic Island redesign with springy motion, pointer-aware eyes and Apple system accents. See [the 4.0 design spec](docs/20-kai-4-dynamic-island.md). The interface is English. Some development documents preserve the original Indonesian planning history.
 
 **Status:** working local desktop prototype, with automated and native Windows checks. It is not a standalone installer, a Microsoft Store package, or a finished memory-constrained release. The requested **50 MiB maximum across every Kai process, including conversion, has not been proven**.
 
@@ -26,21 +26,28 @@ Created by [RicoMitra](https://github.com/RicoMitra). Current application versio
 
 ## Experience and visual design
 
-Kai adapts the spatial behavior of an iPhone Dynamic Island to a Windows pointer-and-keyboard workflow. Its current design uses an opaque black surface, restrained white indicators, and the installed **Segoe UI Variable** font. It does not embed a browser or ship React, Electron, GSAP, or a webview.
+Kai 4.0 adapts the iPhone Dynamic Island to a Windows pointer-and-keyboard workflow: one black capsule that changes shape with the task. It uses the installed **Segoe UI Variable** font and Apple system dark accents. It does not embed a browser or ship React, Electron, GSAP, or a webview. The full design reference is [docs/20-kai-4-dynamic-island.md](docs/20-kai-4-dynamic-island.md).
 
-- **Collapsed:** a 72 × 24 DIP black pill with two crisp, vector-painted white eyes. There is no purple/blue glow or continuously animated mascot.
-- **Hover:** a compact view displays the clock, date, and robot identity. The expanded compact size is 320 × 68 DIP.
-- **Controls:** a larger embedded surface, normally 540 DIP wide, opens against the top edge of the screen. Its upper corners flatten into that edge; the lower corners stay rounded. Page heights vary with the task.
-- **Navigation:** five line indicators replace named footer tabs. A longer white selection marker slides between them in 180 ms. Tooltips and accessible names identify each destination; keyboard focus remains available.
-- **Motion:** the island uses an interruptible spring that carries its current position and velocity through reversals. The navigation marker retargets from its visible position. Animations stop when settled, and Reduce motion supports immediate state changes.
-- **Playback color:** only the open Music page, while a track is playing, receives a dark gradient derived from its cover. Other pages and paused/no-cover states are black. Color is calculated from a tiny cover sample; there is no full-size background blur or native backdrop surface.
-- **Behavior:** moving away normally closes the island after a short delay. A navigation fix keeps Music open if its smaller layout moves away from a stationary pointer after a click. Editing, an active dialog, or a popup can keep the controls available.
+- **Collapsed:** a 72 × 24 DIP black pill with two vector-painted white eyes. The eyes follow the pointer, the pill leans in slightly as the pointer approaches, and the eyes blink every few seconds only while the island is idle.
+- **Hover:** a 320 × 68 DIP capsule with a large clock (the colon breathes once a second) and the weekday and date. While media is known, it shows a live-activity card instead: cover, title, artist, progress and transport controls.
+- **Floating capsule:** every state floats 8 DIP below the screen edge with fully rounded corners. The robot logo is used only as the application icon (Kai.exe, shortcut and tray), never inside the island.
+- **Controls:** a 540 DIP wide panel. The header has only an accent dot, the page title, a **•••** menu and close. Page actions live in the ••• menu and in right-click menus, so the pages show content instead of rows of buttons.
+- **Navigation:** five dots. The selected page has a marker in its accent colour (Transform orange, Clipboard blue, Notes yellow, Shelf purple, Music green) that blends colour and stretches while travelling. Tooltips, accessible names and Left/Right keyboard navigation remain.
+- **Motion:** opening uses a slightly underdamped spring (width leads height) for a soft overshoot; closing is crisp and critically damped. Content fades and scales in, the panel is revealed like a curtain while the capsule morphs, and pages glide in from the direction of travel. Animation timers stop when settled. Reduce motion snaps everything and disables the eye motion.
+- **Playback colour:** only the open Music page, while a track is playing, receives a dark gradient and a progress colour derived from its cover. There is no full-size background blur or native backdrop surface.
+- **Behavior:** moving away closes the island after a short delay. Editing, an active dialog, or a popup keeps the controls available.
 
-The screenshots below are generated acceptance fixtures: the cover, song text, notes, and filenames are examples, not personal user content.
+The screenshots below are generated acceptance fixtures rendered off-screen: the cover, song text, notes, and filenames are examples, not personal user content.
+
+### Hover
+
+![Hover clock capsule](artifacts/productivity/v4-clock.png)
+
+![Live media capsule](artifacts/productivity/v4-compact.png)
 
 ### Fast Transform
 
-![Fast Transform with two columns and white line navigation](artifacts/productivity/fast-transform.png)
+![Fast Transform drop zone with FROM and TO chips](artifacts/productivity/fast-transform.png)
 
 ### Music
 
@@ -48,7 +55,11 @@ The screenshots below are generated acceptance fixtures: the cover, song text, n
 
 ### Notes
 
-![Simple notes page on the black island](artifacts/productivity/notes-black.png)
+![Notes list with a new-note field](artifacts/productivity/notes-black.png)
+
+### Smart Shelf
+
+![Shelf grid with a selected image preview](artifacts/productivity/v4-shelf.png)
 
 ## Features
 
@@ -91,7 +102,8 @@ Smart Clipboard stores **text and URLs only**. Code snippets remain text. It doe
 - Event-driven capture with a short debounce, rather than continuous polling of clipboard contents.
 - No import of the clipboard's initial contents on startup.
 - Up to **80 history items**, **20 pinned items**, and **64 KiB of text per item**.
-- Search and text/link filtering; pin, copy, paste, remove, pause, and clear actions.
+- Search; Enter or double-click pastes. Right-click an item to paste, copy, pin or delete it. The ••• menu filters text/links, pauses history and clears unpinned items.
+- **Clear all** at the bottom deletes the whole history, including pinned items. The first click arms it (red, three seconds); a second click confirms.
 - Paste targets the previous application through an explicit user action. Copy restoration is marked to avoid creating a duplicate history item.
 - Honors supported password-manager and Windows clipboard-history exclusion hints. This is not a guarantee that every application marks sensitive content correctly.
 
@@ -99,7 +111,7 @@ Pausing text history does not disable Shelf's separate image/file intake.
 
 ### Smarter Notes
 
-Notes deliberately uses one simple list. **+ Note** reveals an inline input; type the note and press Enter. Click the circle, or use Space on the selected item, to mark it complete. Use Delete or the Delete button to remove it. Pin/unpin is available in the context menu, keeping the main toolbar small.
+Notes deliberately uses one simple list. A **New note** field sits above the list; type the note and press Enter. Click the circle, or use Space on the selected item, to mark it complete. Hover a note and click its **×** to delete it, or use the Delete key, the right-click menu, or the ••• menu. Pin/unpin is in the right-click menu. **Clear all** (two clicks) deletes every note.
 
 There is no search box, separate editor, detail screen, or additional note subheading. This follows the owner's preference to delete and recreate a mistyped note instead of maintaining an editing workflow. Pinned items stay above other items, and checking a note does not reorder it simply because its completion state changed.
 
@@ -115,8 +127,8 @@ Shelf is a temporary working collection of file references, not a second copy of
 - Computes a normalized pixel fingerprint to merge the same screenshot detected through clipboard and folder events. It prefers the original saved screenshot path and preserves pin metadata.
 - Reconciles a bounded set of existing image references when Shelf first opens, repairing legacy duplicates.
 - Displays actual bounded image thumbnails and an inline image preview. Other files show metadata and open with their default application after a user action.
-- Supports search, category filtering, pinning, multiple selection, and dragging file URLs into another application. Ctrl-click and Ctrl+A help select multiple items.
-- Remove/Clear drops references rather than deleting original user files; Clear preserves pinned references.
+- Supports search, multiple selection, and dragging file URLs into another application. Ctrl-click and Ctrl+A help select multiple items. Double-click opens an item; right-click opens, pins, converts or removes it. The ••• menu adds files or folders, filters by category and clears unpinned items.
+- Remove, Clear unpinned and **Clear all** (two clicks) drop references only. Original user files on disk are never deleted.
 
 Clipboard-origin PNG cache storage is bounded separately: **12 megapixels**, **4 MiB per PNG**, and **24 MiB total**. Only owned, unreferenced cache files are eligible for automatic purging. Deduplication hashes 64-row RGB32 strips to avoid a second full-size normalized bitmap. Thumbnail loading is limited to visible items, with a small bounded queue.
 
@@ -162,7 +174,7 @@ No speech model, microphone setup, Ollama, LLM server, Node.js, browser engine, 
 
 2. Run **Setup Kai.cmd** once. It creates the Python environment under `%LOCALAPPDATA%\Kai\runtime` and installs the pinned requirements outside the source folder.
 3. Double-click **Kai.exe**. Daily use does not require a command window.
-4. Move the pointer toward the island to expand it. Click to open controls, or use **Ctrl+Alt+Space** to open Fast Transform. Hover the footer lines to identify destinations. Escape closes the controls; the tray menu includes Quit Kai and Reduce motion.
+4. Move the pointer toward the island to expand it. Click to open controls, or use **Ctrl+Alt+Space** to open Fast Transform. Hover the footer dots to identify destinations; the ••• menu holds page actions and Settings. Escape closes the controls; the tray menu includes Quit Kai and Reduce motion.
 
 `Kai.exe` is a small Windows GUI launcher, **not a self-contained Python/Qt bundle**. Copying that EXE alone is insufficient: keep the complete project folder and install the runtime first. The checked-in launcher is accompanied by [its C# source](tools/KaiLauncher.cs).
 
@@ -281,7 +293,7 @@ The publication applies the owner's privacy guidance to secrets, repository cont
 
 ## Verification
 
-The latest local UI revision passed **44 unit tests**. Additional owned-widget checks cover white eye pixels, line-only navigation, stopped/reduced motion, top-edge geometry, wrapped lyrics, clipboard/Shelf behavior, stationary-pointer navigation and conversion cleanup. Six generated conversion cases exercise the four supported workflows, including a scanned PDF and local Windows OCR.
+The Kai 4.0 revision passed **45 unit tests**, including the underdamped spring, floating capsule geometry, white eye pixels, accent navigation, note hover-delete and lyrics wrapping. `tools/check_appearance.py` renders owned widgets off-screen without moving the pointer. The native pointer checks below move the real mouse and briefly show windows; run them only when the desktop is free. They were not rerun after the final 4.0 motion change. Earlier native checks covered stationary-pointer navigation, clipboard/Shelf behavior and conversion cleanup. Six generated conversion cases exercise the four supported workflows, including a scanned PDF and local Windows OCR.
 
 Run checks sequentially to avoid overlapping GUI windows and workers:
 

@@ -1,7 +1,8 @@
-"""Kai island: v2 event/hover foundation, native Qt with a stable canvas."""
+"""Kai 4.0 island: floating Dynamic Island capsule, native Qt with a stable canvas."""
 import datetime as dt
 import math
 from pathlib import Path
+import random
 import sys
 import threading
 import time
@@ -16,37 +17,50 @@ import events
 
 FONT = 'Segoe UI Variable'
 DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-TONES = {'idle': '#e0c8de', 'listen': '#e0c8de', 'busy': '#e7c999',
-         'ok': '#78dfb4', 'err': '#ff9f9f'}
+TONES = {'idle': '#ffffff', 'listen': '#0a84ff', 'busy': '#ff9f0a',
+         'ok': '#30d158', 'err': '#ff453a'}
+LABEL2 = '#9b9ba1'
 
 
 def lerp(a, b, t):
     return a + (b - a) * t
 
 
-def body_path(rect,radius,expansion):
-    top=radius*(1-max(0,min(1,expansion)));bottom=radius
-    x,y,w,h=rect.x(),rect.y(),rect.width(),rect.height();path=QPainterPath(QPointF(x+top,y))
-    path.lineTo(x+w-top,y);path.quadTo(x+w,y,x+w,y+top);path.lineTo(x+w,y+h-bottom);path.quadTo(x+w,y+h,x+w-bottom,y+h)
-    path.lineTo(x+bottom,y+h);path.quadTo(x,y+h,x,y+h-bottom);path.lineTo(x,y+top);path.quadTo(x,y,x+top,y);path.closeSubpath();return path
+def body_path(rect,radius):
+    """Floating capsule: every corner rounded, never wider than a full pill."""
+    radius=min(radius,rect.height()/2,rect.width()/2)
+    path=QPainterPath();path.addRoundedRect(rect,radius,radius);return path
 
 
 class Spring:
-    """Exact critically damped solution. Retargeting preserves velocity."""
-    def __init__(self, value=0.0, frequency=24.0):
+    """Exact damped-spring solution. Retargeting preserves velocity.
+
+    damping=1 is critically damped (no overshoot); below 1 settles with a soft bounce."""
+    def __init__(self, value=0.0, frequency=24.0, damping=1.0):
         self.value = self.target = value
         self.velocity = 0.0
         self.frequency = frequency
+        self.damping = damping
 
     def step(self, seconds):
         seconds = max(0.0, seconds)
-        w = self.frequency
+        w, z = self.frequency, self.damping
         offset = self.value - self.target
-        b = self.velocity + w * offset
-        decay = math.exp(-w * seconds)
-        self.value = self.target + (offset + b * seconds) * decay
-        self.velocity = (self.velocity - w * b * seconds) * decay
+        if z >= 1:
+            b = self.velocity + w * offset
+            decay = math.exp(-w * seconds)
+            self.value = self.target + (offset + b * seconds) * decay
+            self.velocity = (self.velocity - w * b * seconds) * decay
+        else:
+            wd = w * math.sqrt(1 - z * z)
+            decay = math.exp(-z * w * seconds)
+            c, s = math.cos(wd * seconds), math.sin(wd * seconds)
+            v0 = self.velocity
+            self.value = self.target + decay * (offset * c + (v0 + z * w * offset) / wd * s)
+            self.velocity = decay * (v0 * c - (z * w * v0 + w * w * offset) / wd * s)
         if self.settled:
             self.value, self.velocity = self.target, 0.0
         return self.value
@@ -105,14 +119,18 @@ class Island(QWidget):
         self._deck = None
         self._deck_open = False
         self._navigation_anchor = None
-        self._mark = QPixmap(str(Path(__file__).resolve().parents[1] / 'assets/kai-128.png'))
         self._media, self._audio = {}, {}
         self._job = None
         self._cover, self._cover_key = QPixmap(), None
         self._album_color=None
         self._card, self._card_until = 'default', 0.0
         self._context={}
-        self._motion = Spring(frequency=config.ISLAND_SPRING_FREQUENCY)
+        self._motion = Spring(frequency=config.ISLAND_SPRING_FREQUENCY, damping=config.ISLAND_SPRING_DAMPING)
+        self._tall = Spring(frequency=20, damping=.85)  # height trails width, like the iPhone island
+        self._look = Spring(frequency=16)   # eyes follow the pointer
+        self._pull = Spring(frequency=14)   # magnetic stretch as the pointer approaches
+        self._ph = 0.0
+        self._blink_started = -1.0
         self._presence = Presence(config.ISLAND_COLLAPSE_DELAY)
         self._p, self._open = 0.0, False
         self._dim, self._main, self._tone = '', 'Kai is ready', 'idle'
@@ -131,6 +149,10 @@ class Island(QWidget):
         self._clock.setInterval(1000)
         self._clock.timeout.connect(self._tick_clock)
         self._clock.start()
+        self._blink = QTimer(self)
+        self._blink.setSingleShot(True)
+        self._blink.timeout.connect(self._start_blink)
+        self._blink.start(random.randint(5000, 9000))
         QGuiApplication.instance().primaryScreenChanged.connect(self._position)
 
     def _position(self, *_):
@@ -154,14 +176,21 @@ class Island(QWidget):
         self.setGeometry(geometry.center().x() - width // 2, geometry.y(), width, 420)
 
     def body_rect(self):
-        p = min(1.0, max(0.0, self._p))
+        # Springs may overshoot slightly above 1; the canvas leaves room for it.
+        p, ph = max(0.0, self._p), max(0.0, self._ph)
+        pull = max(0.0, self._pull.value) * max(0.0, 1 - p)
         compact_width=lerp(self._panel_width,min(self._panel_width,290),self._notice_motion.value)
         compact_height=lerp(config.ISLAND_EXPANDED_HEIGHT,56,self._notice_motion.value)
         expanded_width = lerp(compact_width,self._deck_width,self._detail)
         expanded_height = lerp(compact_height,self._height_motion.value,self._detail)
-        width = lerp(config.ISLAND_COLLAPSED_WIDTH, expanded_width, p)
-        height = lerp(config.ISLAND_COLLAPSED_HEIGHT, expanded_height, p)
-        return QRectF((self.width() - width) / 2, lerp(config.ISLAND_TOP,0,p), width, height)
+        width = lerp(config.ISLAND_COLLAPSED_WIDTH + 12 * pull, expanded_width, p)
+        height = lerp(config.ISLAND_COLLAPSED_HEIGHT + 2 * pull, expanded_height, ph)
+        return QRectF((self.width() - width) / 2, config.ISLAND_TOP, width, height)
+
+    def _radius(self, rect):
+        p = min(1.0, max(0.0, self._p))
+        compact = lerp(config.ISLAND_COMPACT_RADIUS, 28, self._notice_motion.value)
+        return min(rect.height() / 2, lerp(rect.height() / 2, lerp(compact, config.ISLAND_DECK_RADIUS, self._detail), p))
 
     def _hot_rect(self):
         if self._open or self._p > 0.15:
@@ -186,8 +215,31 @@ class Island(QWidget):
         navigation_hold=self._deck_open and self._navigation_anchor is not None and (cursor-self._navigation_anchor).manhattanLength()<=8
         if not navigation_hold:self._navigation_anchor=None
         expanded = self._presence.update(bool(owns_focus) or navigation_hold or self._hot_rect().contains(cursor), now)
+        self._attend(cursor, expanded)
         if expanded != self._open:
             self.open_island() if expanded else self.close_island()
+
+    def _attend(self, cursor, expanded):
+        """Eyes look toward the pointer; the pill leans in as it approaches."""
+        look = pull = 0.0
+        if not expanded and not self.reduced_motion:
+            center = self.mapToGlobal(self.body_rect().center().toPoint())
+            dx, dy = cursor.x() - center.x(), cursor.y() - center.y()
+            distance = math.hypot(dx, dy)
+            pull = max(0.0, 1 - distance / config.ISLAND_MAGNET_DISTANCE)
+            look = max(-1.0, min(1.0, dx / 140)) if distance < 420 else 0.0
+        if abs(pull - self._pull.target) > .01 or abs(look - self._look.target) > .02:
+            self._pull.target, self._look.target = pull, look
+            self._wake_frames()
+
+    def _start_blink(self):
+        if not self.reduced_motion and self._p < .3 and self.isVisible() and not self._frames.isActive():
+            self._blink_started = time.perf_counter()
+            self._wake_frames()
+        self._blink.start(random.randint(4000, 9000))
+
+    def _blinking(self):
+        return 0 <= time.perf_counter() - self._blink_started < .14
 
     def _wake_frames(self):
         if not self._frames.isActive():
@@ -195,10 +247,19 @@ class Island(QWidget):
             self._frames.start()
 
     def _target(self, target):
-        self._motion.target = target
+        self._motion.target = self._tall.target = target
+        # Open with a soft bounce; shrink back crisply without one.
+        opening = target > .5
+        self._motion.damping = config.ISLAND_SPRING_DAMPING if opening else 1.0
+        self._motion.frequency = config.ISLAND_SPRING_FREQUENCY if opening else 26.0
+        self._tall.damping, self._tall.frequency = (.85, 20.0) if opening else (1.0, 26.0)
         self._notice_motion.target=float(self._card in ('shelf','result','error','context') and not self._deck_open)
         if self.reduced_motion:
             self._motion.value, self._motion.velocity = target, 0.0
+            self._tall.value, self._tall.velocity = target, 0.0
+            for spring in (self._look, self._pull):
+                spring.value = spring.target = spring.velocity = 0.0
+            self._ph = target
             self._detail_motion.value, self._detail_motion.velocity = self._detail_motion.target,0.0
             self._detail = self._detail_motion.value
             self._height_motion.value = self._height_motion.target
@@ -227,6 +288,9 @@ class Island(QWidget):
         # Exact integration stays stable across delayed frames; clamping elapsed
         # time here makes the whole animation run slowly when Windows is busy.
         self._p = self._motion.step(now - self._last_frame)
+        self._ph = self._tall.step(now - self._last_frame)
+        self._look.step(now - self._last_frame)
+        self._pull.step(now - self._last_frame)
         self._detail = self._detail_motion.step(now - self._last_frame)
         self._height_motion.step(now - self._last_frame)
         self._notice_motion.step(now-self._last_frame)
@@ -235,7 +299,8 @@ class Island(QWidget):
         self._sync_glass()
         self._sync_deck()
         self.update()
-        if self._motion.settled and self._detail_motion.settled and self._height_motion.settled and self._notice_motion.settled:
+        springs = (self._motion, self._tall, self._detail_motion, self._height_motion, self._notice_motion, self._look, self._pull)
+        if all(spring.settled for spring in springs) and not self._blinking():
             self._after_anim()
             if self.reduced_motion or self._tone != 'listen' or not self._open:
                 self._frames.stop()
@@ -274,9 +339,11 @@ class Island(QWidget):
 
     def _sync_deck(self):
         if self._deck is None: return
-        x = round((self.width()-self._deck_width)/2)+20
-        self._deck.setGeometry(x,round(self.body_rect().top())+15,self._deck_width-40,round(self._height_motion.target)-30)
-        self._deck.setVisible(self._detail>.96 and self._p>.96 and self._height_motion.settled)
+        # Generous inset so content never crowds the 30 DIP rounded corners.
+        x = round((self.width()-self._deck_width)/2)+28
+        self._deck.setGeometry(x,round(self.body_rect().top())+18,self._deck_width-56,round(self._height_motion.target)-34)
+        # Stay visible while the capsule morphs; the window mask clips it like a curtain.
+        self._deck.setVisible(self._detail>.7 and self._p>.7)
 
     def _hide_deck(self):
         self._navigation_anchor=None
@@ -386,8 +453,9 @@ class Island(QWidget):
                 style = user.GetWindowLongW(handle, -20)
                 user.SetWindowLongW(handle, -20, (style & ~0x20 if enabled else style | 0x20) & ~0x08000000 if self._deck_open else (style & ~0x20 if enabled else style | 0x20) | 0x08000000)
         if QGuiApplication.platformName() == 'windows':
-            radius = lerp(config.ISLAND_COLLAPSED_HEIGHT / 2, 23, min(1, max(0, self._p)))
-            path = body_path(self.body_rect(),radius,self._p)
+            # 1.5 DIP margin keeps the antialiased edge; the region itself is aliased.
+            rect = self.body_rect()
+            path = body_path(rect.adjusted(-1.5,-1.5,1.5,1.5),self._radius(rect)+1.5)
             self.setMask(QRegion(path.toFillPolygon().toPolygon()))
 
     def _sync_glass(self):
@@ -461,68 +529,79 @@ class Island(QWidget):
     def paintEvent(self, _):
         p = max(0.0, min(1.0, self._p))
         rect = self.body_rect()
-        radius = lerp(config.ISLAND_COLLAPSED_HEIGHT / 2, 23, p)
+        radius = self._radius(rect)
+        body = body_path(rect, radius)
         qp = QPainter(self)
         qp.setRenderHint(QPainter.Antialiasing)
         qp.setRenderHint(QPainter.SmoothPixmapTransform)
         qp.setPen(Qt.NoPen)
-        for spread in range(8,0,-2):
-            qp.setBrush(QColor(0,0,0,int(5*p)))
-            qp.drawRoundedRect(rect.adjusted(-spread,-spread*.2,spread,spread*.6),radius+spread,radius+spread)
-        qp.setBrush(Qt.black);qp.drawPath(body_path(rect,radius,p))
+        qp.setBrush(Qt.black);qp.drawPath(body)
         color=self._album_color if (self._deck_open and self._deck is not None and self._deck.current_page()=='Media' and self._media.get('playing')) else None
         if color is not None:
-            qp.save();qp.setClipPath(body_path(rect,radius,p))
+            qp.save();qp.setClipPath(body)
             tint=QLinearGradient(rect.topLeft(),rect.bottomRight())
             tint.setColorAt(0,QColor(0,0,0));tint.setColorAt(1,color)
             qp.fillRect(rect,tint);qp.restore()
         if p>.02:
-            qp.setPen(QPen(QColor(255,255,255,int(30*p)),1));qp.setBrush(Qt.NoBrush)
-            qp.drawPath(body_path(rect.adjusted(.5,.5,-.5,-.5),radius,p))
+            # Hairline keeps the black capsule legible on dark wallpapers.
+            qp.setPen(QPen(QColor(255,255,255,int(22*p)),1));qp.setBrush(Qt.NoBrush)
+            qp.drawPath(body_path(rect.adjusted(.5,.5,-.5,-.5),radius-.5))
         if p<.45:
-            qp.save();qp.setOpacity(1-p/.45);qp.setPen(Qt.NoPen);qp.setBrush(Qt.white)
-            for offset in (-6.5,6.5):
-                qp.drawRoundedRect(QRectF(rect.center().x()+offset-2,rect.center().y()-5,4,10),2,2)
-            qp.restore()
+            self._draw_eyes(qp, rect, 1-p/.45)
         alpha = min(1.0, max(0.0, (p - 0.55) / 0.4))
         alpha *= max(0,1-self._detail*2)
         if alpha:
             qp.save()
-            clip = QPainterPath()
-            clip.addRoundedRect(rect.adjusted(1, 1, -1, -1), radius, radius)
-            qp.setClipPath(clip)
+            qp.setClipPath(body)
             qp.setOpacity(alpha)
+            # Content settles in: slight rise and scale, like a live activity.
+            center = rect.center(); scale = .92 + .08 * alpha
+            qp.translate(center.x(), center.y() + 6 * (1 - alpha)); qp.scale(scale, scale); qp.translate(-center.x(), -center.y())
             self._draw_content(qp, rect)
             qp.restore()
         qp.end()
 
-    @staticmethod
-    def _draw_spark(qp, center, size):
-        glow = QRadialGradient(center, size * 3.5)
-        glow.setColorAt(0, QColor('#fff2df'))
-        glow.setColorAt(0.25, QColor('#d4bddb'))
-        glow.setColorAt(1, QColor(194,160,208,0))
-        qp.setPen(Qt.NoPen)
-        qp.setBrush(glow)
-        qp.drawEllipse(center, size * 3.5, size * 3.5)
-        qp.setBrush(QColor('#fff2df'))
-        qp.drawEllipse(center, size * 0.45, size * 0.45)
+    def _draw_eyes(self, qp, rect, opacity):
+        t = (time.perf_counter() - self._blink_started) / .14
+        height = 10 * (1 - .85 * math.sin(math.pi * t)) if 0 <= t < 1 else 10
+        look = self._look.value * 2.5
+        spread = 1 + .12 * max(0.0, self._pull.value)
+        qp.save();qp.setOpacity(opacity);qp.setPen(Qt.NoPen);qp.setBrush(Qt.white)
+        for offset in (-6.5,6.5):
+            qp.drawRoundedRect(QRectF(rect.center().x()+offset*spread+look-2,rect.center().y()-height/2,4,height),2,min(2,height/2))
+        qp.restore()
 
-    def _text(self, qp, rect, text, size=14, color='#eef5ff', weight=QFont.Normal):
+    def _text(self, qp, rect, text, size=14, color='#ffffff', weight=QFont.Normal, align=Qt.AlignLeft, spacing=0):
         font = QFont(FONT)
         font.setPixelSize(size)
         font.setWeight(weight)
+        if spacing: font.setLetterSpacing(QFont.AbsoluteSpacing, spacing)
         qp.setFont(font)
         qp.setPen(QColor(color))
-        qp.drawText(rect, Qt.AlignLeft | Qt.AlignVCenter,
+        qp.drawText(rect, align | Qt.AlignVCenter,
                     QFontMetrics(font).elidedText(text, Qt.ElideRight, int(rect.width())))
 
-    def _orb(self,qp,center):
-        if not self._mark.isNull():
-            path = QPainterPath(); path.addRoundedRect(QRectF(center.x()-19,center.y()-19,38,38),11,11)
-            qp.save(); qp.setClipPath(path)
-            qp.drawPixmap(QRectF(center.x()-19,center.y()-19,38,38),self._mark,QRectF(self._mark.rect()))
-            qp.restore()
+    def _glyph(self, qp, center, kind, color):
+        """Tinted circle with a simple stroked glyph, like iPhone status icons."""
+        tone = QColor(color); fill = QColor(tone); fill.setAlpha(46)
+        qp.setPen(Qt.NoPen); qp.setBrush(fill); qp.drawEllipse(center, 17, 17)
+        qp.setPen(QPen(tone, 2.2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)); qp.setBrush(Qt.NoBrush)
+        x, y = center.x(), center.y()
+        if kind == 'ok':
+            path = QPainterPath(QPointF(x-6,y)); path.lineTo(x-2,y+4); path.lineTo(x+6,y-5); qp.drawPath(path)
+        elif kind == 'err':
+            qp.drawLine(QPointF(x,y-6),QPointF(x,y+1)); qp.drawPoint(QPointF(x,y+5.5))
+        elif kind == 'link':
+            qp.drawLine(QPointF(x-5,y+5),QPointF(x+5,y-5)); qp.drawLine(QPointF(x-1,y-5),QPointF(x+5,y-5)); qp.drawLine(QPointF(x+5,y-5),QPointF(x+5,y+1))
+        elif kind == 'shelf':
+            path = QPainterPath(QPointF(x-7,y-1)); path.lineTo(x-7,y+5); path.lineTo(x+7,y+5); path.lineTo(x+7,y-1); qp.drawPath(path)
+            qp.drawLine(QPointF(x-3,y-1),QPointF(x+3,y-1)); qp.drawLine(QPointF(x,y-7),QPointF(x,y-1))
+        else:
+            for dx in (-5,0,5): qp.drawPoint(QPointF(x+dx,y))
+
+    def _chip(self, qp, rect, label, color, text_color='#000000'):
+        qp.setPen(Qt.NoPen); qp.setBrush(QColor(color)); qp.drawRoundedRect(rect, rect.height()/2, rect.height()/2)
+        self._text(qp, rect, label, 11, text_color, QFont.DemiBold, Qt.AlignHCenter)
 
     def _draw_content(self, qp, rect):
         qp.save()
@@ -536,35 +615,55 @@ class Island(QWidget):
         default = self._tone == 'idle' and self._main == 'Kai is ready'
         if default:
             now=dt.datetime.now()
-            self._text(qp,QRectF(18,9,92,29),now.strftime('%H:%M'),23,weight=QFont.Medium)
-            self._text(qp,QRectF(19,37,92,18),f'{DAYS[now.weekday()]}, {now.day} {MONTHS[now.month-1]}',11,'#aaa4b2')
-            qp.setPen(QPen(QColor(232,211,236,30),1));qp.drawLine(QPointF(112,17),QPointF(112,h-17))
-            self._orb(qp,QPointF(141,h/2))
-            self._text(qp,QRectF(174,12,w-192,24),'Kai',15,weight=QFont.DemiBold)
-            self._text(qp,QRectF(174,36,w-190,19),'Ctrl+Alt+Space',9,'#aaa4b2')
+            # Classy, logo-free: large clock left, date right; the colon breathes once a second.
+            hours, minutes = now.strftime('%H'), now.strftime('%M')
+            font = QFont(FONT); font.setPixelSize(28); font.setWeight(QFont.DemiBold); metrics = QFontMetrics(font)
+            x = 28.0
+            for part, alpha in ((hours, 255), (':', 255 if now.second % 2 == 0 else 90), (minutes, 255)):
+                qp.setFont(font); qp.setPen(QColor(255, 255, 255, alpha))
+                qp.drawText(QRectF(x, 0, metrics.horizontalAdvance(part) + 2, h), Qt.AlignLeft | Qt.AlignVCenter, part)
+                x += metrics.horizontalAdvance(part)
+            if not self._cover.isNull():
+                path=QPainterPath(); path.addRoundedRect(QRectF(w-58,h/2-18,36,36),10,10)
+                qp.save(); qp.setClipPath(path); qp.drawPixmap(QRectF(w-58,h/2-18,36,36),self._cover,QRectF(self._cover.rect())); qp.restore()
+            else:
+                self._text(qp,QRectF(w-190,h/2-17,162,14),WEEKDAYS[now.weekday()].upper(),10,LABEL2,QFont.DemiBold,Qt.AlignRight,spacing=1.2)
+                self._text(qp,QRectF(w-190,h/2-1,162,20),f'{now.day} {MONTH_NAMES[now.month-1]}',14,'#ffffff',QFont.Medium,Qt.AlignRight)
         else:
-            self._orb(qp, QPointF(32, h / 2))
-            label = {'listen': 'KAI LISTENING', 'busy': 'KAI WORKING',
-                     'ok': 'DONE', 'err': 'NEEDS ATTENTION', 'idle': 'KAI READY'}[self._tone]
-            if self._card=='context':label=self._context.get('label','OPEN SHELF →')
+            tone = TONES[self._tone]
+            kind = {'ok':'ok','err':'err'}.get(self._tone,'busy')
+            label = {'listen': 'LISTENING', 'busy': 'WORKING', 'ok': 'DONE', 'err': 'ATTENTION', 'idle': 'KAI'}[self._tone]
+            chip = None
+            if self._card == 'shelf':
+                tone, kind, label = '#bf5af2', 'shelf', 'SHELF'
+            if self._card == 'context':
+                url = self._context.get('action') == 'url'
+                tone, kind, label = ('#0a84ff','link','LINK') if url else ('#bf5af2','shelf','SHELF')
+                chip = 'Open' if url else 'View'
             if self.demo and self._tone == 'listen':
                 label = 'LISTENING PREVIEW'
-            self._text(qp, QRectF(62, 8, w - 80, 15), label, 9, TONES[self._tone], QFont.Medium)
-            self._text(qp, QRectF(62, 24, w - 80, 22), self._main, 14, weight=QFont.Medium)
+            self._glyph(qp, QPointF(32, h / 2), kind, tone)
+            right = w - (86 if chip else 24)
+            self._text(qp, QRectF(60, h/2-19, right-60, 14), label, 9, tone, QFont.DemiBold, spacing=.8)
+            self._text(qp, QRectF(60, h/2-5, right-60, 22), self._main, 14, weight=QFont.DemiBold)
             if self._dim:
                 detail = 'Voice assistant preview' if self.demo and self._tone == 'listen' else self._dim
-                self._text(qp, QRectF(62, 46, w - 80, 16), detail, 10, '#b5becd')
+                self._text(qp, QRectF(60, h/2+15, right-60, 16), detail, 10, LABEL2)
+            if chip:
+                self._chip(qp, QRectF(w-76, h/2-14, 58, 28), chip, tone, '#ffffff')
         qp.restore()
 
     def _control(self, qp, center, symbol):
+        primary = symbol in ('play', 'pause')
         qp.setPen(Qt.NoPen)
-        qp.setBrush(QColor(238,218,242,20))
+        qp.setBrush(QColor('#ffffff') if primary else QColor(255,255,255,24))
         qp.drawEllipse(center, 12, 12)
-        qp.setPen(QPen(QColor('#e8f2ff'), 1.6, Qt.SolidLine, Qt.RoundCap))
+        ink = QColor('#000000') if primary else QColor('#ffffff')
+        qp.setPen(QPen(ink, 1.8, Qt.SolidLine, Qt.RoundCap))
         x, y = center.x(), center.y()
         if symbol == 'pause':
-            qp.drawLine(QPointF(x-3,y-4), QPointF(x-3,y+4))
-            qp.drawLine(QPointF(x+3,y-4), QPointF(x+3,y+4))
+            qp.drawLine(QPointF(x-2.5,y-4), QPointF(x-2.5,y+4))
+            qp.drawLine(QPointF(x+2.5,y-4), QPointF(x+2.5,y+4))
         elif symbol == 'cancel':
             qp.drawLine(QPointF(x-3,y-3), QPointF(x+3,y+3))
             qp.drawLine(QPointF(x+3,y-3), QPointF(x-3,y+3))
@@ -572,47 +671,50 @@ class Island(QWidget):
             sign = -1 if symbol == 'prev' else 1
             path = QPainterPath(QPointF(x-sign*3,y-4))
             path.lineTo(x+sign*3,y); path.lineTo(x-sign*3,y+4); path.closeSubpath()
-            qp.setBrush(QColor('#e8f2ff')); qp.drawPath(path)
+            qp.setBrush(ink); qp.drawPath(path)
             if symbol in ('prev','next'):
                 qp.drawLine(QPointF(x+sign*5,y-4), QPointF(x+sign*5,y+4))
 
     def _draw_card(self, qp, w, h, mode):
-        self._orb(qp, QPointF(32, h/2))
         if mode == 'volume':
+            self._glyph(qp, QPointF(32, h/2), 'busy', '#ffffff')
             level = self._audio.get('level', 0)
-            self._text(qp, QRectF(62, 10, w-82, 22), 'Muted' if self._audio.get('mute') else f'Volume {level}%', 14)
-            qp.setPen(QPen(QColor('#3a333e'), 5, Qt.SolidLine, Qt.RoundCap))
-            qp.drawLine(QPointF(64,48),QPointF(w-20,48))
-            qp.setPen(QPen(QColor('#dfc8e5'), 5, Qt.SolidLine, Qt.RoundCap))
-            qp.drawLine(QPointF(64,48),QPointF(64+(w-84)*level/100,48))
+            self._text(qp, QRectF(62, 10, w-82, 22), 'Muted' if self._audio.get('mute') else f'Volume {level}%', 14, weight=QFont.DemiBold)
+            qp.setPen(QPen(QColor(255,255,255,40), 6, Qt.SolidLine, Qt.RoundCap))
+            qp.drawLine(QPointF(64,46),QPointF(w-24,46))
+            qp.setPen(QPen(QColor('#ffffff'), 6, Qt.SolidLine, Qt.RoundCap))
+            qp.drawLine(QPointF(64,46),QPointF(64+(w-88)*level/100,46))
             return
         if mode == 'job':
             job = self._job
             seconds = job['remaining'] if job['state']=='paused' else max(0, job['due']-time.time())
             minutes, seconds = divmod(int(seconds), 60)
-            self._text(qp, QRectF(62,8,w-138,20), job['kind'].title() + (' · paused' if job['state']=='paused' else ''), 11, '#aaa1b0')
-            self._text(qp, QRectF(62,29,w-138,29), f'{minutes:02}:{seconds:02}', 23, weight=QFont.Medium)
+            self._text(qp, QRectF(62,8,w-138,20), job['kind'].upper() + (' · PAUSED' if job['state']=='paused' else ''), 10, '#ff9f0a', QFont.DemiBold)
+            self._text(qp, QRectF(62,27,w-138,30), f'{minutes:02}:{seconds:02}', 24, weight=QFont.DemiBold)
             self._control(qp,QPointF(w-49,34),'play' if job['state']=='paused' else 'pause')
             self._control(qp,QPointF(w-21,34),'cancel')
             return
         if not self._cover.isNull():
-            path=QPainterPath(); path.addRoundedRect(QRectF(13,15,38,38),8,8)
+            path=QPainterPath(); path.addRoundedRect(QRectF(14,13,40,40),11,11)
             qp.save(); qp.setClipPath(path)
-            qp.drawPixmap(QRectF(13,15,38,38),self._cover,QRectF(self._cover.rect()))
+            qp.drawPixmap(QRectF(14,13,40,40),self._cover,QRectF(self._cover.rect()))
             qp.restore()
-        self._text(qp,QRectF(62,9,w-156,25),self._media.get('title','Media'),13,weight=QFont.Medium)
-        self._text(qp,QRectF(62,34,w-156,19),self._media.get('artist',''),10,'#aaa1b0')
+        else:
+            qp.setPen(Qt.NoPen); qp.setBrush(QColor(255,255,255,26)); qp.drawRoundedRect(QRectF(14,13,40,40),11,11)
+        self._text(qp,QRectF(64,9,w-156,24),self._media.get('title','Media'),13,weight=QFont.DemiBold)
+        self._text(qp,QRectF(64,32,w-156,18),self._media.get('artist',''),11,LABEL2)
         for i,symbol in enumerate(('prev','pause' if self._media.get('playing') else 'play','next')):
             self._control(qp,QPointF(w-77+i*28,31),symbol)
         duration=self._media.get('duration',0)
         position=self._media.get('position',0)
         if self._media.get('playing'):
             position+=max(0,time.monotonic()-self._media.get('updated',time.monotonic()))
-        qp.setPen(QPen(QColor('#3a333e'),2,Qt.SolidLine,Qt.RoundCap))
-        qp.drawLine(QPointF(64,59),QPointF(w-20,59))
+        qp.setPen(QPen(QColor(255,255,255,36),3,Qt.SolidLine,Qt.RoundCap))
+        qp.drawLine(QPointF(64,57),QPointF(w-24,57))
         if duration:
-            qp.setPen(QPen(QColor('#dfc8e5'),2,Qt.SolidLine,Qt.RoundCap))
-            qp.drawLine(QPointF(64,59),QPointF(64+(w-84)*min(1,position/duration),59))
+            accent = self._album_color.lighter(260) if self._album_color is not None else QColor('#30d158')
+            qp.setPen(QPen(accent,3,Qt.SolidLine,Qt.RoundCap))
+            qp.drawLine(QPointF(64,57),QPointF(64+(w-88)*min(1,position/duration),57))
 
     def closeEvent(self, event):
         if self._backdrop:self._backdrop.close();self._backdrop=None

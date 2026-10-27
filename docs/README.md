@@ -4,6 +4,14 @@
 
 The new English [project README](../README.md) is generated from [readme-source.md](readme-source.md). See [19 — GitHub and privacy](19-github-and-privacy.md) for the owner-requested private publication, dependency/secret review, repository boundary and unresolved controls; [SECURITY.md](../SECURITY.md) for the current security model. The [preceding README](history/README-before-github.md) remains a historical record. Current UI, features and memory limitations below still apply.
 
+## Kai 4.0 — Dynamic Island redesign (27 October 2026, overrides 3.0 visuals)
+
+Spec: [docs/20-kai-4-dynamic-island.md](docs/20-kai-4-dynamic-island.md). Floating black capsule 8 DIP below the top edge with fully rounded corners; slightly underdamped open spring (width leads height), crisp critically damped close; content fades/scales in; panel stays visible and is clipped by the mask while morphing; pages slide 22 DIP; nav dots with an accent marker that blends colour and stretches mid-flight. Apple system accents per page (Transform orange, Clipboard blue, Notes yellow, Shelf purple, Music green); white pill primary buttons. Two white eyes stay in the collapsed pill and now follow the pointer, lean in (magnet) and blink every 4–9 s only while idle; Reduce motion disables all of that.
+
+Logo: new owner logo (`Futuristic Pearl Robot Mascot.png`) upscaled to a 2048 px master (`assets/kai-original.png`, Lanczos + unsharp, not AI super-resolution). `tools/build_launcher.py` trims a 10% margin and rebuilds `kai-64/128/256.png`, `kai.ico` and `Kai.exe`. **Owner rule: the logo appears only as the application icon (exe, shortcut, tray) — never inside the island UI.**
+
+**Owner rule: do not run checks that move the real mouse pointer or flash windows (`tools/check_island_windows.py`, `check_navigation.py`, `check_controls_windows.py`, etc.) without asking first.** Use unit tests and hidden renders (`WA_DontShowOnScreen`, `QCursor.setPos` stubbed). Verification 27 Oct: 45 unit tests pass; appearance captures regenerated hidden. Native pointer checks were not rerun after the final spring change; whole-tree memory not re-measured.
+
 ## Latest UI correction — 24 October 2026
 
 The owner restored **two plain white eyes** in the collapsed black 72 × 24 DIP pill. They are vector-painted rounded strokes, with no blue/purple accents, glow, bitmap or idle animation. They fade during expansion; the existing clock/date/robot hover remains.
@@ -70,6 +78,7 @@ Disusun 22 Oktober 2026 dari seluruh 12 bagian [ide asli](../kai-dynamic-island.
 | [16 — Kai productivity](16-kai-productivity.md) | Cakupan aktif: Clipboard/Command/Notes/Smart Shelf; jam/logo dan target RAM 20–40 MiB |
 | [17 — Shelf, Notes dan konteks](17-revisi-shelf-notes-dan-context.md) | Kontrak aktif 3.0: dedupe piksel, unduhan, checklist/pin, preview dan mini island |
 | [18 — Notes, Transform dan Musik](18-notes-transform-dan-musik.md) | Notes tanpa subheading, konversi lokal 1–2 file/hasil, cleanup worker, seek dan volume |
+| [20 — Kai 4.0 Dynamic Island](20-kai-4-dynamic-island.md) | Spesifikasi desain aktif 4.0: kapsul mengambang, aksen, gerak, logo hanya ikon aplikasi |
 | [Handoff](../handoff.md) / [sumber](handoff-source.md) | Riwayat lengkap, penjelasan setiap MD/modul, lokasi data, tes dan inventaris otomatis |
 | [Panduan agen](../AGENTS.md) | Konteks yang perlu dibaca setiap sesi kerja |
 

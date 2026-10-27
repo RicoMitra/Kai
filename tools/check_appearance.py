@@ -1,4 +1,7 @@
-"""Capture only owned Kai widgets, using generated cover and temporary notes."""
+"""Capture only owned Kai widgets, using generated cover and temporary notes.
+
+Renders hidden (WA_DontShowOnScreen) and never moves the pointer: the owner
+asked that checks not disturb the desktop."""
 import json
 import os
 from pathlib import Path
@@ -18,11 +21,15 @@ from storage import Store
 
 
 def main():
-    app=QApplication([]);cursor=QCursor.pos();out=ROOT/'artifacts/productivity'
+    app=QApplication([]);out=ROOT/'artifacts/productivity'
     with tempfile.TemporaryDirectory() as directory,patch.dict(os.environ,{'LOCALAPPDATA':directory}):
-        window=Island(interactive=True,reduced_motion=True);window._timer.stop();window.show()
+        window=Island(interactive=True,reduced_motion=True);window.setAttribute(Qt.WA_DontShowOnScreen,True);window._timer.stop();window.show()
         media=SimpleNamespace(snapshot={},set_active=lambda value:None)
-        panel=ControlPanel(media=media,store=Store(Path(directory)/'test.sqlite3'),parent=window)
+        store=Store(Path(directory)/'test.sqlite3')
+        for body in ('Send weekly report','Review island motion','Buy coffee beans'):store.save_note(body=body)
+        for index,color in enumerate(('#2c2c2e','#1c3b5a','#3a1c4a')):
+            sample=QImage(640,360,QImage.Format_RGB32);sample.fill(QColor(color));path=Path(directory)/f'Sample {index+1}.png';sample.save(str(path));store.add_file(str(path))
+        panel=ControlPanel(media=media,store=store,parent=window)
         try:
             window.attach_deck(panel);QTest.qWait(80)
             page=panel._built['Transform'];page.set_files([str(Path(directory)/'example.png')])
@@ -37,17 +44,22 @@ def main():
             state={'title':'Sample song','artist':'Generated cover','playing':True,'duration':240,'position':55,'cover':bytes(buffer.data())}
             lyrics={'synced':[(0,'Previous line'),(50,'Every word in this long lyric remains fully readable, wrapping onto the next line without being cut off.'),(80,'Next line')]}
             window.on_event('media','',state);panel.music.set_state(state,{'level':40},lyrics);QTest.qWait(80)
-            assert window.body_rect().top()==0
+            assert window.body_rect().top()==8
             assert panel.music._lyrics_layouts[1][0].lineCount()>1
             assert window._backdrop is None
             window.grab().save(str(out/'music-album-top-edge.png'))
             panel.open_page('Notes');QTest.qWait(80);window.grab().save(str(out/'notes-black.png'))
+            panel.open_page('Clipboard');QTest.qWait(80);window.grab().save(str(out/'v4-clipboard.png'))
+            panel.open_page('Shelf');QTest.qWait(80);panel._built['Shelf'].files.setCurrentRow(0);QTest.qWait(450);window.grab().save(str(out/'v4-shelf.png'))
+            window.collapse_deck();QTest.qWait(80);window.grab().save(str(out/'v4-compact.png'))
+            clock=Island(interactive=True,reduced_motion=True);clock.setAttribute(Qt.WA_DontShowOnScreen,True);clock._timer.stop();clock.show()
+            clock.open_island();QTest.qWait(60);clock.grab().save(str(out/'v4-clock.png'));clock.close()
             window.close_island();QTest.qWait(50);window.grab().save(str(out/'collapsed-black.png'))
             body=window.body_rect();ratio=window.devicePixelRatioF();pixels=window.grab().toImage()
             for offset in (-6.5,6.5):assert pixels.pixelColor(round((body.center().x()+offset)*ratio),round(body.center().y()*ratio)).name()=='#ffffff'
-            report={'white_eyes_restored':True,'line_navigation_without_labels':True,'unnecessary_transform_hints_removed':True,'top_edge_attached':True,'transform_two_columns_fit':True,'lyrics_wrapped':True,'album_tint_media_only':True,'native_backdrop_disabled':True,'font':QFontInfo(QFont('Segoe UI Variable')).family(),'scope':'Synthetic cover/lyrics, temporary notes, owned widgets only; no account playback mutation'}
+            report={'white_eyes_restored':True,'line_navigation_without_labels':True,'hidden_render_no_pointer_motion':True,'unnecessary_transform_hints_removed':True,'floating_capsule':True,'transform_two_columns_fit':True,'lyrics_wrapped':True,'album_tint_media_only':True,'native_backdrop_disabled':True,'font':QFontInfo(QFont('Segoe UI Variable')).family(),'scope':'Synthetic cover/lyrics, temporary notes, owned widgets only; no account playback mutation'}
             (out/'appearance-verification.json').write_text(json.dumps(report,indent=2),encoding='utf-8');print(json.dumps(report,indent=2))
-        finally:window.close();QCursor.setPos(cursor);app.processEvents()
+        finally:window.close();app.processEvents()
 
 
 if __name__=='__main__':main()

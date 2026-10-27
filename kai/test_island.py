@@ -68,6 +68,17 @@ class MotionTests(unittest.TestCase):
             self.assertTrue(all(math.isfinite(v) and 0 <= v <= 1 for v in samples))
             self.assertAlmostEqual(spring.value, 1, places=3)
 
+    def test_underdamped_spring_overshoots_softly_and_settles(self):
+        for fps in (30, 60, 144):
+            spring = island.Spring(frequency=22, damping=.78)
+            spring.target = 1
+            samples = [spring.step(1 / fps) for _ in range(fps * 2)]
+            self.assertTrue(all(math.isfinite(v) for v in samples))
+            self.assertLess(max(samples), 1.06)
+            self.assertGreater(max(samples), 1.0)
+            self.assertTrue(spring.settled)
+            self.assertEqual(spring.value, 1)
+
     def test_hover_delay_cancels_on_reentry_and_respects_pin(self):
         self.assertTrue(hasattr(island, 'Presence'), 'Missing hover state controller')
         state = island.Presence(delay=0.7)
@@ -99,7 +110,7 @@ class WindowTests(unittest.TestCase):
                 self.assertFalse(card._lyrics_scroll.isVisible())
         finally:card.close()
 
-    def test_lyrics_wrap_and_open_island_joins_top_edge(self):
+    def test_lyrics_wrap_and_open_island_floats_as_capsule(self):
         from widgets import MusicCard
         from PySide6.QtCore import QPointF
         card=MusicCard();card.resize(500,180)
@@ -108,8 +119,11 @@ class WindowTests(unittest.TestCase):
         try:
             self.assertGreater(card._lyrics_layouts[0][0].lineCount(),1)
             self.window.set_reduced_motion(True);self.window.open_island();rect=self.window.body_rect()
-            self.assertEqual(rect.top(),0)
-            self.assertTrue(island.body_path(rect,23,1).contains(QPointF(rect.left()+1,.5)))
+            # Kai 4.0: floating capsule with every corner rounded (docs/20).
+            self.assertEqual(rect.top(),island.config.ISLAND_TOP)
+            path=island.body_path(rect,self.window._radius(rect))
+            self.assertFalse(path.contains(QPointF(rect.left()+1,rect.top()+1)))
+            self.assertTrue(path.contains(rect.center()))
         finally:card.close()
 
     def test_black_surface_and_album_color_only_in_playing_media(self):
@@ -196,6 +210,9 @@ class WindowTests(unittest.TestCase):
                 self.assertEqual(store.notes()[0]['id'],identifier)
                 created=store.notes('Review UI')[0]['id'];page.identifier=created;page.remove()
                 self.assertIsNone(store.note(created))
+                rect=page.items.visualItemRect(page.items.item(0))
+                QTest.mouseClick(page.items.viewport(),Qt.LeftButton,pos=QPoint(rect.right()-24,rect.center().y()))
+                self.assertIsNone(store.note(identifier))
             finally:page.close();APP.processEvents()
 
     def setUp(self):
@@ -260,7 +277,8 @@ class WindowTests(unittest.TestCase):
             self.assertEqual(panel._built['Clipboard'].filter.itemText(0),'All')
             panel.open_page('Notes')
             from PySide6.QtWidgets import QPushButton
-            self.assertIn('+ Note',[button.text() for button in panel._built['Notes'].findChildren(QPushButton)])
+            notes=panel._built['Notes'];self.assertEqual(notes.input.placeholderText(),'New note — press Enter')
+            self.assertIn('New note',[action[0] for action in notes.menu_actions() if action])
             panel.open_page('Atur');self.assertEqual(panel.heading.text(),'Settings')
             panel.close()
 

@@ -187,6 +187,11 @@ class Store:
             db.execute('INSERT OR REPLACE INTO files (path,added,pinned,source,opened,fingerprint) VALUES (?,?,?,?,?,?)',(chosen,added,pinned,chosen_source,opened,fingerprint))
         return chosen
 
+    def clear_files(self):
+        """Drop every Shelf reference; original files on disk are never touched."""
+        with self.connection() as db:
+            db.execute('DELETE FROM files')
+
     def remove_file(self, path):
         with self.connection() as db:
             db.execute('DELETE FROM files WHERE path=?', (path,))
@@ -228,8 +233,8 @@ class Store:
     def remove_clip(self, identifier):
         with self.connection() as db: db.execute('DELETE FROM clipboard WHERE id=?',(identifier,))
 
-    def clear_clips(self):
-        with self.connection() as db: db.execute('DELETE FROM clipboard WHERE pinned=0')
+    def clear_clips(self, include_pinned=False):
+        with self.connection() as db: db.execute('DELETE FROM clipboard' if include_pinned else 'DELETE FROM clipboard WHERE pinned=0')
 
     def save_note(self, identifier=None, body='', done=None):
         if len(body)>20000: raise ValueError('Note limit: 20,000 characters')
@@ -263,6 +268,9 @@ class Store:
         with self.connection() as db:
             row=db.execute('SELECT * FROM notes WHERE id=?',(identifier,)).fetchone()
             return dict(row) if row else None
+
+    def clear_notes(self):
+        with self.connection() as db: db.execute('DELETE FROM notes')
 
     def remove_note(self, identifier):
         with self.connection() as db: db.execute('DELETE FROM notes WHERE id=?',(identifier,))

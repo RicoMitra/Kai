@@ -1,6 +1,6 @@
 """Pengaturan Kai. Ubah di sini, bukan di file lain."""
 
-APP_VERSION = '3.0.0'
+APP_VERSION = '4.0.0'
 
 # Tahan tombol ini untuk bicara, lepas untuk memproses.
 HOTKEY = ("ctrl", "space")
@@ -14,7 +14,16 @@ ISLAND_TOP = 8
 ISLAND_HOT_WIDTH = 140
 ISLAND_COLLAPSE_DELAY = 0.7
 ISLAND_CURSOR_INTERVAL_MS = 33
-ISLAND_SPRING_FREQUENCY = 24.0
+ISLAND_SPRING_FREQUENCY = 22.0
+# Kai 4.0: slightly underdamped so the capsule settles with a soft overshoot.
+ISLAND_SPRING_DAMPING = 0.78
+ISLAND_COMPACT_RADIUS = 34
+ISLAND_DECK_RADIUS = 30
+ISLAND_MAGNET_DISTANCE = 150
+
+# Apple system dark accents (docs/20-kai-4-dynamic-island.md).
+ACCENTS = {'Transform': '#FF9F0A', 'Clipboard': '#0A84FF', 'Notes': '#FFD60A',
+           'Shelf': '#BF5AF2', 'Media': '#30D158', 'Atur': '#98989D'}
 
 SAMPLE_RATE = 16000
 MIN_RECORD_SECONDS = 0.4

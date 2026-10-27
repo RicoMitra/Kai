@@ -1,5 +1,17 @@
 # Status dan verifikasi aktual
 
+## Kai 4.0 layout refresh (27 October 2026)
+
+Pages were rebuilt for a calmer Dynamic Island feel: header = accent dot, title, ••• menu, close (Settings moved into •••). Rows of buttons were removed; actions live in right-click and ••• menus. Fast Transform uses one drop zone with FROM/TO chips and a single Convert; Save/Clear appear only with a result. Notes has an always-visible New note field and a hover × per row. Clipboard, Notes and Shelf have a quiet two-click **Clear all** (Shelf drops references only; files stay). Hover capsule: large clock with breathing colon, weekday/date right-aligned; the Ctrl Alt Space chip was removed at the owner's request. `tools/check_appearance.py` now renders hidden and never moves the pointer. 45 unit tests pass.
+
+## Kai 4.0 — Dynamic Island redesign (27 October 2026, overrides 3.0 visuals)
+
+Spec: [docs/20-kai-4-dynamic-island.md](docs/20-kai-4-dynamic-island.md). Floating black capsule 8 DIP below the top edge with fully rounded corners; slightly underdamped open spring (width leads height), crisp critically damped close; content fades/scales in; panel stays visible and is clipped by the mask while morphing; pages slide 22 DIP; nav dots with an accent marker that blends colour and stretches mid-flight. Apple system accents per page (Transform orange, Clipboard blue, Notes yellow, Shelf purple, Music green); white pill primary buttons. Two white eyes stay in the collapsed pill and now follow the pointer, lean in (magnet) and blink every 4–9 s only while idle; Reduce motion disables all of that.
+
+Logo: new owner logo (`Futuristic Pearl Robot Mascot.png`) upscaled to a 2048 px master (`assets/kai-original.png`, Lanczos + unsharp, not AI super-resolution). `tools/build_launcher.py` trims a 10% margin and rebuilds `kai-64/128/256.png`, `kai.ico` and `Kai.exe`. **Owner rule: the logo appears only as the application icon (exe, shortcut, tray) — never inside the island UI.**
+
+**Owner rule: do not run checks that move the real mouse pointer or flash windows (`tools/check_island_windows.py`, `check_navigation.py`, `check_controls_windows.py`, etc.) without asking first.** Use unit tests and hidden renders (`WA_DontShowOnScreen`, `QCursor.setPos` stubbed). Verification 27 Oct: 45 unit tests pass; appearance captures regenerated hidden. Native pointer checks were not rerun after the final spring change; whole-tree memory not re-measured.
+
 ## Lyrics lookup correction — 24 October 2026
 
 LRCLIB's expected HTTP 404 for a missing catalog match previously propagated as a raw task error. Kai now tries one bounded search after that response, accepts only normalized title/artist matches and a duration within two seconds when known, and renders distinct missing, instrumental and temporary-failure states. Plain lyrics are no longer labeled as synchronized. Positive results retain the existing 50-track disk bound; missing entries expire after six hours and transient errors back off for one minute, with retry available on click. Corrupt cache JSON is refetched. No new library, resident worker or polling timer is added. Exact live/remaster mismatches are deliberately not guessed.

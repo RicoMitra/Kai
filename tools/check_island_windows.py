@@ -93,7 +93,7 @@ def main():
         QCursor.setPos(receiver.geometry().bottomLeft() + QPoint(60, -60))
         QTest.qWait(800)
         before_reentry = window._p
-        assert 0 < before_reentry < 1, 'Expected collapse in progress'
+        assert 0 < before_reentry < 1, f'Expected collapse in progress: {before_reentry} open={window._open}'
         QCursor.setPos(window.mapToGlobal(QPoint(window.width() // 2, 22)))
         QTest.qWait(450)
         assert window._open and window._p > 0.98, 'Retarget failed'

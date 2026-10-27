@@ -2,8 +2,9 @@
 import datetime as dt
 from pathlib import Path
 import threading
-from PySide6.QtCore import QObject,QRunnable,QThreadPool,QTimer,Qt,Signal,QUrl
+from PySide6.QtCore import QObject,QRunnable,QThreadPool,QTimer,Qt,Signal,QUrl,QVariantAnimation,QEasingCurve
 from PySide6.QtGui import QPixmap,QShortcut,QKeySequence,QDesktopServices
+import config
 from PySide6.QtWidgets import (QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QLineEdit,
     QStackedWidget,QFormLayout,QCheckBox)
 from widgets import ASSETS,MusicCard,PageNavigation
@@ -48,36 +49,62 @@ class ControlPanel(QWidget):
     def __init__(self,media=None,audio=None,store=None,parent=None,clipboard=None,initial_page='Transform'):
         super().__init__(parent);self.media=media;self.audio=audio;self.store=store or get_store();self.clipboard=clipboard
         self.setObjectName('IslandDeck');self.setAttribute(Qt.WA_DeleteOnClose)
+        # Kai 4.0: iOS-style black surface, pill controls, white primary actions (docs/20).
         self.setStyleSheet("""
-            QWidget { background:transparent;color:#eeedee;font-family:'Segoe UI Variable';font-size:11px; }
-            QLabel#heading { font-size:15px;font-weight:600; }
-            QLabel#hint,QLabel#status,QLabel#clock { color:#9d9aa6;font-size:10px; }
-            QLineEdit,QPlainTextEdit,QTextBrowser,QComboBox { background:rgba(255,255,255,7);border:1px solid rgba(255,255,255,15);border-radius:10px;padding:8px;selection-background-color:#62576d; }
-            QLineEdit#commandSearch { font-size:15px;padding:13px; }
-            QLineEdit:focus,QPlainTextEdit:focus { border-color:#a292b6; }
+            QWidget { background:transparent;color:#ffffff;font-family:'Segoe UI Variable';font-size:12px; }
+            QLabel#heading { font-size:16px;font-weight:600; }
+            QLabel#hint,QLabel#status,QLabel#clock { color:#9b9ba1;font-size:11px; }
+            QLabel#caption { color:#6e6e73;font-size:10px;font-weight:600;letter-spacing:1px;padding-right:2px; }
+            QLabel#preview { background:rgba(255,255,255,13);border-radius:16px;color:#9b9ba1;font-size:11px;padding:8px; }
+            QPushButton#chip { background:transparent;border:1px solid rgba(255,255,255,30);border-radius:13px;padding:4px 11px;font-size:11px;min-height:18px; }
+            QPushButton#chip:hover { background:rgba(255,255,255,16); }
+            QPushButton#chip:checked { background:#ffffff;color:#000000;border-color:#ffffff; }
+            QPushButton#chip:disabled { color:#48484a;border-color:rgba(255,255,255,12);background:transparent; }
+            QPushButton#quiet { background:transparent;color:#8e8e93;font-size:11px;font-weight:500;padding:3px 8px;border-radius:10px; }
+            QPushButton#quiet:hover { color:#ffffff;background:rgba(255,255,255,14); }
+            QPushButton#quiet[armed="true"] { color:#ff453a;background:rgba(255,69,58,30); }
+            QPushButton#dropzone { background:rgba(255,255,255,8);border:0;border-radius:20px; }
+            QPushButton#dropzone:hover { background:rgba(255,255,255,14); }
+            QLineEdit,QPlainTextEdit,QTextBrowser,QComboBox { background:rgba(255,255,255,18);border:1px solid transparent;border-radius:14px;padding:8px 14px;selection-background-color:#3a3a3c; }
+            QLineEdit:focus,QPlainTextEdit:focus,QComboBox:focus { border-color:rgba(255,255,255,70);background:rgba(255,255,255,24); }
+            QComboBox::drop-down { border:0;width:22px; }
+            QComboBox QAbstractItemView { background:#1c1c1e;border:1px solid rgba(255,255,255,24);border-radius:12px;padding:4px;selection-background-color:#3a3a3c;outline:0; }
             QListWidget { background:transparent;border:0;outline:0; }
-            QListWidget::item { border-radius:10px;padding:4px;color:#e2dfe8; }
-            QListWidget::item:selected { background:rgba(213,198,229,25); }
-            QPushButton { background:rgba(255,255,255,8);border:1px solid rgba(255,255,255,12);border-radius:9px;padding:6px 10px; }
-            QPushButton:hover { background:rgba(255,255,255,18);border-color:rgba(223,210,238,65); }
-            QPushButton:pressed { background:rgba(221,204,238,33); }
-            QPushButton:checked { background:rgba(255,255,255,28);border-color:#99999f;color:white; }
-            QPushButton:focus { border-color:#b3a2c8; }
+            QListWidget::item { border-radius:16px;padding:4px;color:#ffffff; }
+            QListWidget::item:selected { background:rgba(255,255,255,30); }
+            QListWidget::item:hover { background:rgba(255,255,255,14); }
+            QPushButton { background:rgba(255,255,255,26);border:0;border-radius:14px;padding:7px 14px;font-weight:600; }
+            QPushButton:hover { background:rgba(255,255,255,40); }
+            QPushButton:pressed { background:rgba(255,255,255,16); }
+            QPushButton:checked { background:#ffffff;color:#000000; }
+            QPushButton:disabled { color:#5b5b60;background:rgba(255,255,255,10); }
+            QPushButton:focus { border:1px solid rgba(255,255,255,110); }
+            QPushButton[primary="true"] { background:#ffffff;color:#000000; }
+            QPushButton[primary="true"]:hover { background:#e5e5ea; }
+            QPushButton[primary="true"]:pressed { background:#c7c7cc; }
+            QPushButton#icon { background:rgba(255,255,255,22);border-radius:14px;padding:0 0 2px 0;min-width:28px;max-width:28px;min-height:28px;max-height:28px;font-size:11px;color:#d1d1d6; }
+            QPushButton#icon:hover { background:rgba(255,255,255,46); }
+            QCheckBox { spacing:10px; }
+            QCheckBox::indicator { width:18px;height:18px;border-radius:9px;border:1.5px solid #6e6e73; }
+            QCheckBox::indicator:checked { background:#30d158;border-color:#30d158; }
             QScrollBar:vertical { background:transparent;width:4px; }
-            QScrollBar::handle:vertical { background:#625b6a;border-radius:2px;min-height:20px; }
+            QScrollBar::handle:vertical { background:#48484a;border-radius:2px;min-height:20px; }
             QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical { height:0; }
-            QSplitter::handle { background:rgba(255,255,255,10);width:1px; }
-            QLabel[metric='true'] { background:rgba(255,255,255,6);border:1px solid rgba(255,255,255,12);border-radius:12px;padding:12px;font-size:12px; }
+            QSplitter::handle { background:rgba(255,255,255,14);width:1px; }
+            QMenu { background:#1c1c1e;border:1px solid rgba(255,255,255,24);border-radius:12px;padding:5px; }
+            QMenu::item { padding:6px 18px;border-radius:8px; }
+            QMenu::item:selected { background:#3a3a3c; }
+            QToolTip { background:#1c1c1e;color:#ffffff;border:1px solid rgba(255,255,255,30);border-radius:8px;padding:5px 8px; }
         """)
         self._closed=False;self._tasks={};self._lyrics=None;self._lyrics_key=None;self._auto_lyrics=False
         self.pool=QThreadPool.globalInstance();self.pool.setMaxThreadCount(1);self.pool.setExpiryTimeout(1000)
         layout=QVBoxLayout(self);layout.setContentsMargins(0,0,0,0);layout.setSpacing(10)
-        header=QHBoxLayout();mark=QLabel();ratio=self.devicePixelRatioF()
-        logo=QPixmap(str(ASSETS/'kai-128.png')).scaled(round(24*ratio),round(24*ratio),Qt.KeepAspectRatio,Qt.SmoothTransformation);logo.setDevicePixelRatio(ratio);mark.setPixmap(logo);header.addWidget(mark)
+        # Header: accent dot + title, then one "more" menu and close. Page actions live in the menu.
+        header=QHBoxLayout();header.setSpacing(10)
+        self.dot=QLabel();self.dot.setFixedSize(8,8);header.addWidget(self.dot)
         self.heading=QLabel('Fast Transform');self.heading.setObjectName('heading');header.addWidget(self.heading);header.addStretch()
-        self.clock=QLabel('Kai');self.clock.setObjectName('clock');header.addWidget(self.clock)
-        self.button('Settings',lambda:self.open_page('Atur'),header).setToolTip('Spotify and clipboard')
-        self.button('×',self.dismissed.emit,header).setToolTip('Close · Escape');layout.addLayout(header)
+        self.more=self.button('•••',self._show_menu,header);self.more.setObjectName('icon');self.more.setToolTip('More · actions and settings');self.more.setAccessibleName('More')
+        close=self.button('✕',self.dismissed.emit,header);close.setObjectName('icon');close.setToolTip('Close · Escape');close.setAccessibleName('Close');layout.addLayout(header)
         self.tabs=QStackedWidget();layout.addWidget(self.tabs,1)
         self._pages={};self._built={};self._nav={}
         for name in ('Transform','Clipboard','Notes','Shelf','Media','Atur'):
@@ -86,10 +113,22 @@ class ControlPanel(QWidget):
         self.navigation=PageNavigation(self);self.navigation.selected.connect(self.open_page);self._nav=self.navigation.buttons;layout.addWidget(self.navigation)
         self.escape=QShortcut(QKeySequence('Escape'),self);self.escape.activated.connect(self.dismissed.emit)
         self.timer=QTimer(self);self.timer.setInterval(1000);self.timer.timeout.connect(self._refresh)
+        self.slide=QVariantAnimation(self);self.slide.setDuration(260);self.slide.setEasingCurve(QEasingCurve.OutCubic)
+        self.slide.valueChanged.connect(lambda value:self.tabs.currentWidget().move(round(value),0))
         self.open_page(initial_page)
 
     def button(self,label,callback,layout):
         button=QPushButton(label);button.setCursor(Qt.PointingHandCursor);button.clicked.connect(callback);layout.addWidget(button);return button
+
+    def _show_menu(self):
+        from PySide6.QtWidgets import QMenu
+        menu=QMenu(self);widget=self._built.get(self.current_page())
+        for action in (widget.menu_actions() if hasattr(widget,'menu_actions') else []):
+            if action is None:menu.addSeparator()
+            else:menu.addAction(*action)
+        if not menu.isEmpty():menu.addSeparator()
+        menu.addAction('Settings',lambda:self.open_page('Atur'))
+        menu.exec(self.more.mapToGlobal(self.more.rect().bottomLeft()))
 
     def notify(self,message):
         self.status.setText(str(message));self.status.setVisible(bool(message))
@@ -105,7 +144,13 @@ class ControlPanel(QWidget):
         if self.current_page()=='Transform' and name!='Transform':
             self._cleanup_transform()
         if 'Notes' in self._built:self._built['Notes'].flush()
+        order=list(self._pages);before=order.index(self.current_page())
+        self.slide.stop();self.tabs.currentWidget().move(0,0)
         self.tabs.setCurrentWidget(self._pages[name]);self.notify('')
+        reduced=getattr(self.parentWidget(),'reduced_motion',False)
+        if self.isVisible() and not reduced and order.index(name)!=before:
+            # New page glides in from the direction of travel.
+            self.slide.setStartValue(22. if order.index(name)>before else -22.);self.slide.setEndValue(0.);self.slide.start()
         if name not in self._built:self._build(name)
         widget=self._built.get(name)
         if widget and hasattr(widget,'refresh'):widget.refresh()
@@ -161,10 +206,11 @@ class ControlPanel(QWidget):
     def _update_navigation(self):
         name=self.current_page();self.heading.setText({'Media':'Music','Clipboard':'Smart Clipboard','Shelf':'Smart Shelf','Notes':'Smarter Notes','Transform':'Fast Transform','Atur':'Settings'}.get(name,name))
         reduced=getattr(self.parentWidget(),'reduced_motion',settings().get('reduced_motion',False))
+        self.dot.setStyleSheet(f"background:{config.ACCENTS.get(name,'#ffffff')};border-radius:4px;")
         self.navigation.select(name,animate=not reduced)
 
     def preferred_height(self):
-        return {'Media':280,'Shelf':330,'Clipboard':356,'Notes':356,'Transform':356,'Atur':290}.get(self.current_page(),320)
+        return {'Media':300,'Shelf':340,'Clipboard':340,'Notes':340,'Transform':330,'Atur':300}.get(self.current_page(),320)
 
     def _sync_media_service(self,*_):
         if hasattr(self.media,'set_active'):self.media.set_active(not self._closed and self.current_page()=='Media')
@@ -199,7 +245,7 @@ class ControlPanel(QWidget):
         self.media_on_demand=QCheckBox('Load media/audio only while Music is open');self.media_on_demand.setChecked(bool(values.get('media_on_demand',True)));layout.addWidget(self.media_on_demand)
         self.capture_clipboard=QCheckBox('Save local clipboard history');self.capture_clipboard.setChecked(self.clipboard.enabled if self.clipboard else bool(values.get('clipboard_enabled',True)));layout.addWidget(self.capture_clipboard)
         hint=QLabel('Ctrl+Alt+Space opens Fast Transform. Clipboard: text/URLs only, 80 items. Images and downloads go to Shelf.');hint.setWordWrap(True);hint.setObjectName('hint');layout.addWidget(hint)
-        row=QHBoxLayout();self.button('Save',self._save_settings,row);self.button('Login Spotify',self._spotify_login,row);layout.addLayout(row);layout.addStretch()
+        row=QHBoxLayout();self.button('Save',self._save_settings,row).setProperty('primary',True);self.button('Login Spotify',self._spotify_login,row);layout.addLayout(row);layout.addStretch()
 
     def _save_settings(self):
         save_settings({'spotify_client_id':self.client_id.text().strip(),'media_on_demand':self.media_on_demand.isChecked(),'clipboard_enabled':self.capture_clipboard.isChecked()})
@@ -223,7 +269,7 @@ class ControlPanel(QWidget):
         if self.current_page()=='Media' and self._auto_lyrics and data.get('title') and self._lyrics is None and 'lyrics' not in self._tasks:self._load_lyrics()
 
     def closeEvent(self,event):
-        self._closed=True;self.timer.stop();self.navigation.animation.stop()
+        self._closed=True;self.timer.stop();self.navigation.animation.stop();self.slide.stop()
         if 'Notes' in self._built:self._built['Notes'].flush()
         self._cleanup_transform()
         for task in self._tasks.values():task.canceled.set()
