@@ -314,13 +314,18 @@ class FileList(QListWidget):
         event.acceptProposedAction();self.changed.emit()
 
 
+def plain_icon(pixmap):
+    """Same pixmap for normal and selected states, so thumbnails are never tinted."""
+    icon=QIcon(pixmap);icon.addPixmap(pixmap,QIcon.Selected);return icon
+
+
 def file_icon(folder=False,image=False):
     pixmap=QPixmap(64,64);pixmap.fill(Qt.transparent);p=QPainter(pixmap);p.setRenderHint(QPainter.Antialiasing)
     p.setPen(Qt.NoPen);p.setBrush(QColor('#ff9f0a' if folder else '#bf5af2' if image else '#8e8e93'))
     if folder:p.drawRoundedRect(6,14,24,12,4,4);p.drawRoundedRect(6,22,52,32,5,5)
     else:
         p.drawRoundedRect(14,6,36,52,6,6);p.setPen(QColor('#000000'));p.drawLine(22,28,42,28);p.drawLine(22,36,42,36)
-    p.end();return QIcon(pixmap)
+    p.end();return plain_icon(pixmap)
 
 
 class ShelfPage(QWidget):
@@ -332,7 +337,8 @@ class ShelfPage(QWidget):
         layout.setSpacing(10)
         self.search=QLineEdit();self.search.setPlaceholderText('Search Shelf');self.search.setClearButtonEnabled(True);layout.addWidget(self.search)
         self.filter=QComboBox();self.filter.addItems(['All','Images','Documents','Folder','Pinned']);self.filter.hide()  # driven from the ••• menu
-        self.files=FileList(store);self.files.setViewMode(QListWidget.IconMode);self.files.setIconSize(QSize(84,58));self.files.setGridSize(QSize(104,92));self.files.setSpacing(4)
+        self.files=FileList(store);self.files.setViewMode(QListWidget.IconMode);self.files.setIconSize(QSize(84,54));self.files.setGridSize(QSize(100,90));self.files.setSpacing(2)
+        palette=self.files.palette();palette.setColor(palette.ColorRole.Highlight,QColor(255,255,255,40));self.files.setPalette(palette)  # no tinted thumbnails
         self.files.setContextMenuPolicy(Qt.CustomContextMenu);self.files.customContextMenuRequested.connect(self.context_menu);self.files.setToolTip('Double-click to open · drag out to share · right-click for more')
         self.files.setMovement(QListWidget.Static);self.files.setResizeMode(QListWidget.Adjust);self.files.setSelectionMode(QAbstractItemView.ExtendedSelection);self.files.setDragEnabled(True)
         row=QHBoxLayout();row.setSpacing(12);row.addWidget(self.files,1)
@@ -372,7 +378,7 @@ class ShelfPage(QWidget):
         if not item:return
         path=Path(item.data(Qt.UserRole));self.preview.setToolTip(str(path))
         if path.suffix.lower() in ('.png','.jpg','.jpeg','.webp','.bmp'):
-            reader=QImageReader(str(path));reader.setAllocationLimit(24);reader.setScaledSize(reader.size().scaled(QSize(160,125),Qt.KeepAspectRatio));image=reader.read()
+            reader=QImageReader(str(path));reader.setAllocationLimit(24);reader.setScaledSize(reader.size().scaled(QSize(140,120),Qt.KeepAspectRatio));image=reader.read()
             if not image.isNull():self.preview.setPixmap(QPixmap.fromImage(image));return
         try:size=f'{path.stat().st_size/1024:.1f} KiB' if path.is_file() else 'Folder'
         except OSError:size='File unavailable'
@@ -383,7 +389,7 @@ class ShelfPage(QWidget):
         if not self.queue:self.schedule_thumbnails();return
         path,item=self.queue.pop(0);reader=QImageReader(path);reader.setScaledSize(reader.size().scaled(QSize(96,96),Qt.KeepAspectRatio));reader.setAllocationLimit(24)
         image=reader.read()
-        if not image.isNull():item.setIcon(QIcon(QPixmap.fromImage(image)))
+        if not image.isNull():item.setIcon(plain_icon(QPixmap.fromImage(image)))
         if self.queue:self.thumbnail_timer.start(30)
     def menu_actions(self):
         filters=[(label,lambda checked=False,i=i:self.filter.setCurrentIndex(i)) for i,label in enumerate(('Show all','Images','Documents','Folders','Pinned'))]

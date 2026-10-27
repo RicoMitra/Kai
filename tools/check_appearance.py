@@ -20,6 +20,32 @@ from panel import ControlPanel
 from storage import Store
 
 
+def shelf_samples(directory):
+    """Generated, non-personal Shelf fixtures: two 'photos', a window screenshot and a document."""
+    from PySide6.QtGui import QPainter,QLinearGradient,QRadialGradient
+    from PySide6.QtCore import QRectF,QPointF
+    paths=[]
+    def photo(name,top,bottom,sun):
+        image=QImage(960,600,QImage.Format_RGB32);painter=QPainter(image);painter.setRenderHint(QPainter.Antialiasing)
+        sky=QLinearGradient(0,0,0,600);sky.setColorAt(0,QColor(top));sky.setColorAt(1,QColor(bottom));painter.fillRect(image.rect(),sky)
+        glow=QRadialGradient(QPointF(640,250),160);glow.setColorAt(0,QColor(sun));glow.setColorAt(1,QColor(0,0,0,0));painter.setPen(Qt.NoPen);painter.setBrush(glow);painter.drawEllipse(QPointF(640,250),160,160)
+        painter.setBrush(QColor(sun));painter.drawEllipse(QPointF(640,250),48,48)
+        for offset,color in ((380,'#1d1b33'),(450,'#121022')):
+            painter.setBrush(QColor(color));painter.drawEllipse(QRectF(-200,offset,800,500));painter.drawEllipse(QRectF(380,offset+30,900,500))
+        painter.end();path=directory/name;image.save(str(path));paths.append(path)
+    photo('Sunset hills.jpg','#ff8a5b','#3b1f5c','#ffd29a')
+    photo('Night sky.png','#0b1a3a','#27326b','#cfe3ff')
+    image=QImage(960,600,QImage.Format_RGB32);image.fill(QColor('#1c1c1e'));painter=QPainter(image);painter.setRenderHint(QPainter.Antialiasing)
+    painter.fillRect(QRectF(0,0,960,44),QColor('#2c2c2e'))
+    for x,color in ((24,'#ff5f57'),(48,'#febc2e'),(72,'#28c840')):painter.setPen(Qt.NoPen);painter.setBrush(QColor(color));painter.drawEllipse(QPointF(x,22),7,7)
+    painter.setBrush(QColor('#0a84ff'));painter.drawRoundedRect(QRectF(40,90,300,24),8,8)
+    for row in range(6):painter.setBrush(QColor(255,255,255,40));painter.drawRoundedRect(QRectF(40,140+row*44,500-row*40,16),8,8)
+    painter.setBrush(QColor('#30d158'));painter.drawRoundedRect(QRectF(620,90,300,420),18,18)
+    painter.end();path=directory/'Screenshot 2026-10-27.png';image.save(str(path));paths.append(path)
+    document=directory/'Project brief.pdf';document.write_bytes(b'%PDF-1.4\n% generated fixture\n');paths.append(document)
+    return paths
+
+
 def main():
     app=QApplication([]);out=ROOT/'artifacts/productivity'
     with tempfile.TemporaryDirectory() as directory,patch.dict(os.environ,{'LOCALAPPDATA':directory}):
@@ -27,8 +53,7 @@ def main():
         media=SimpleNamespace(snapshot={},set_active=lambda value:None)
         store=Store(Path(directory)/'test.sqlite3')
         for body in ('Send weekly report','Review island motion','Buy coffee beans'):store.save_note(body=body)
-        for index,color in enumerate(('#2c2c2e','#1c3b5a','#3a1c4a')):
-            sample=QImage(640,360,QImage.Format_RGB32);sample.fill(QColor(color));path=Path(directory)/f'Sample {index+1}.png';sample.save(str(path));store.add_file(str(path))
+        for path in shelf_samples(Path(directory)):store.add_file(str(path))
         panel=ControlPanel(media=media,store=store,parent=window)
         try:
             window.attach_deck(panel);QTest.qWait(80)
@@ -50,7 +75,7 @@ def main():
             window.grab().save(str(out/'music-album-top-edge.png'))
             panel.open_page('Notes');QTest.qWait(80);window.grab().save(str(out/'notes-black.png'))
             panel.open_page('Clipboard');QTest.qWait(80);window.grab().save(str(out/'v4-clipboard.png'))
-            panel.open_page('Shelf');QTest.qWait(80);panel._built['Shelf'].files.setCurrentRow(0);QTest.qWait(450);window.grab().save(str(out/'v4-shelf.png'))
+            panel.open_page('Shelf');QTest.qWait(80);panel._built['Shelf'].files.setCurrentRow(1);QTest.qWait(450);window.grab().save(str(out/'v4-shelf.png'))
             window.collapse_deck();QTest.qWait(80);window.grab().save(str(out/'v4-compact.png'))
             clock=Island(interactive=True,reduced_motion=True);clock.setAttribute(Qt.WA_DontShowOnScreen,True);clock._timer.stop();clock.show()
             clock.open_island();QTest.qWait(60);clock.grab().save(str(out/'v4-clock.png'));clock.close()

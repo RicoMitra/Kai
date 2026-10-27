@@ -210,7 +210,7 @@ class ControlPanel(QWidget):
         self.navigation.select(name,animate=not reduced)
 
     def preferred_height(self):
-        return {'Media':300,'Shelf':340,'Clipboard':340,'Notes':340,'Transform':330,'Atur':300}.get(self.current_page(),320)
+        return {'Media':300,'Shelf':380,'Clipboard':340,'Notes':340,'Transform':330,'Atur':300}.get(self.current_page(),320)
 
     def _sync_media_service(self,*_):
         if hasattr(self.media,'set_active'):self.media.set_active(not self._closed and self.current_page()=='Media')
