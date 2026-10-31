@@ -4,6 +4,14 @@
 
 Referensi pemilik (tidak disalin ke repo): grid 12 live activity hitam (ride timer, activity rings, transit, kartu bank, buku, heart-rate, VR battery, UV chart, tennis score, washer), kartu saham/belanja, dan peta state Dynamic Island iPhone 14 Pro Max (lock, hotspot, AirDrop, Face ID, recording, AirPods, timer, silent/ring, Find My).
 
+## Kai 4.2 — live activities, focus timer, device pop-ups (31 October 2026)
+
+- **Live pill:** while music plays, the collapsed pill widens to 156 × 28 DIP with a mini cover and a five-bar waveform (90 ms repaint only while collapsed and playing; static under Reduce motion). A running focus timer takes priority: orange progress ring + countdown.
+- **Focus:** tray menu or ••• → *Start 25-min focus*. Hover shows pause/cancel; when it ends the island opens a "Focus complete" card with a green rim until clicked. In-memory only (not persisted across restarts).
+- **Device pop-ups:** system volume changes (speaker glyph + bar), audio device connected/disconnected (headphone glyph), battery plugged in / dropping to 20% and 10% (`GetSystemPowerStatus`, checked every 60 s).
+- **Cost, stated honestly:** these need the media/audio helper running all the time. New setting **Live activities** (default on) keeps it alive; turning it off restores the old on-demand behaviour after restart. Measured on 31 Oct after restart: GUI ≈ 32 MiB + helper ≈ 37 MiB private commit, so the 50 MiB all-process target is **exceeded** with live activities on. Media messages now cross the pipe only on track change, play/pause or seek (not every second).
+- 48 unit tests pass (live pill sizing, focus lifecycle, battery thresholds, media message throttling). Real headset/battery events were not exercised automatically.
+
 ## Kai 4.1 — wide, short panel and drag-to-island (31 October 2026)
 
 The panel is now **680 DIP wide and 220–250 DIP tall** (was 540 × 330–380) so it covers less of the screen; page dots moved into the header. Fast Transform puts the drop zone left and FROM/TO chips + actions right; Shelf is one horizontal thumbnail strip with a preview. **Drag a file toward the top centre:** while the mouse button is held near the pill, Kai becomes a drop target; a real file drag opens a 440 × 92 card with **Convert** (orange) and **Shelf** (purple) halves that light up under the file. Dropping on Convert opens Fast Transform with that file; dropping on Shelf adds the files and opens Shelf. Window moves and text selection never send drag-enter, so they do not open the card. 46 unit tests pass (new drag routing test). The real Explorer-to-Kai drag was not exercised automatically because native checks move the pointer.

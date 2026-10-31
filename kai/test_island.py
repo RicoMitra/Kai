@@ -189,6 +189,39 @@ class WindowTests(unittest.TestCase):
             with self.assertRaises(ValueError):seek_position(timeline,float('nan'))
         finally:card.close()
 
+    def test_live_pill_grows_for_music_and_focus_then_rests(self):
+        self.window.set_reduced_motion(True)
+        rest = self.window.body_rect().width()
+        self.window.on_event('media', '', {'title': 'Owned sample', 'artist': 'Test', 'playing': True, 'duration': 200, 'position': 5})
+        self.assertEqual(self.window._live_kind(), 'music')
+        self.assertEqual(self.window.body_rect().width(), island.config.ISLAND_LIVE_WIDTH)
+        self.window.start_focus(1)
+        self.assertEqual(self.window._live_kind(), 'focus')
+        self.window.toggle_focus(); self.assertEqual(self.window._job['state'], 'paused')
+        self.window.toggle_focus(); self.window._job['due'] = 0
+        self.window._tick_clock()
+        self.assertIsNone(self.window._job)
+        self.assertEqual(self.window._card, 'timer_done')
+        self.window.dismiss()
+        self.window.on_event('media', '', {})
+        self.assertIsNone(self.window._live_kind())
+        self.assertEqual(self.window.body_rect().width(), rest)
+
+    def test_battery_and_media_notices_stay_quiet_unless_something_changes(self):
+        from native import media_changed
+        self.assertIsNone(island.battery_notice(None, 55, False))
+        self.assertIsNone(island.battery_notice((55, False), 54, False))
+        self.assertEqual(island.battery_notice((21, False), 20, False), 'Battery 20% · plug in soon')
+        self.assertEqual(island.battery_notice((11, False), 10, False), 'Battery 10% · plug in soon')
+        self.assertEqual(island.battery_notice((40, False), 40, True), 'Charging · 40%')
+        self.assertIsNone(island.battery_notice((40, True), 41, True))
+        signature = (('Song', 'Artist', ''), True, 200)
+        previous = (signature, 10.0, 100.0, True)
+        self.assertFalse(media_changed(previous, signature, 13.0, 103.0))   # normal playback
+        self.assertTrue(media_changed(previous, signature, 60.0, 103.0))    # seek
+        self.assertTrue(media_changed(previous, (signature[0], False, 200), 13.0, 103.0))  # pause
+        self.assertTrue(media_changed(None, signature, 0, 0))
+
     def test_dragged_file_opens_drop_card_and_routes_by_side(self):
         from PySide6.QtCore import QMimeData, QUrl, QPointF
         from PySide6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent

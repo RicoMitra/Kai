@@ -79,6 +79,7 @@ def main():
             window.collapse_deck();QTest.qWait(80);window.grab().save(str(out/'v4-compact.png'))
             clock=Island(interactive=True,reduced_motion=True);clock.setAttribute(Qt.WA_DontShowOnScreen,True);clock._timer.stop();clock.show()
             clock.open_island();QTest.qWait(60);clock.grab().save(str(out/'v4-clock.png'));clock.close()
+            window.on_event('media','',{})
             window.close_island();QTest.qWait(50);window.grab().save(str(out/'collapsed-black.png'))
             body=window.body_rect();ratio=window.devicePixelRatioF();pixels=window.grab().toImage()
             for offset in (-6.5,6.5):assert pixels.pixelColor(round((body.center().x()+offset)*ratio),round(body.center().y()*ratio)).name()=='#ffffff'

@@ -47,7 +47,7 @@ class MediaProxy:
 
     def set_active(self, active):
         if active: self.owner.start()
-        else: self.owner.stop(wait=False)
+        elif not self.owner.keep_alive: self.owner.stop(wait=False)  # live activities keep it running
 
 
 class AudioProxy:
@@ -63,6 +63,7 @@ class DesktopServices:
         self.media, self.audio = MediaProxy(self), AudioProxy(self)
         self.process = self.pipe = self.stopped = self.thread = None
         self.retired = []
+        self.keep_alive = False
 
     def start(self):
         if self.process is not None:

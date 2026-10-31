@@ -128,6 +128,8 @@ class ControlPanel(QWidget):
             if action is None:menu.addSeparator()
             else:menu.addAction(*action)
         if not menu.isEmpty():menu.addSeparator()
+        island=self.parentWidget()
+        if hasattr(island,'start_focus'):menu.addAction(f'Start {config.FOCUS_MINUTES}-min focus',lambda:(island.start_focus(),self.dismissed.emit()))
         menu.addAction('Settings',lambda:self.open_page('Atur'))
         menu.exec(self.more.mapToGlobal(self.more.rect().bottomLeft()))
 
@@ -245,12 +247,14 @@ class ControlPanel(QWidget):
     def _make_settings(self,layout):
         values=settings();form=QFormLayout();self.client_id=QLineEdit(values.get('spotify_client_id',''));form.addRow('Spotify Client ID',self.client_id);layout.addLayout(form)
         self.media_on_demand=QCheckBox('Load media/audio only while Music is open');self.media_on_demand.setChecked(bool(values.get('media_on_demand',True)));layout.addWidget(self.media_on_demand)
+        self.live=QCheckBox('Live activities: music, focus, volume and headsets in the island');self.live.setChecked(bool(values.get('live_activities',True)))
+        self.live.setToolTip('Keeps one small media/audio helper running in the background');layout.addWidget(self.live)
         self.capture_clipboard=QCheckBox('Save local clipboard history');self.capture_clipboard.setChecked(self.clipboard.enabled if self.clipboard else bool(values.get('clipboard_enabled',True)));layout.addWidget(self.capture_clipboard)
         hint=QLabel('Ctrl+Alt+Space opens Fast Transform. Clipboard: text/URLs only, 80 items. Images and downloads go to Shelf.');hint.setWordWrap(True);hint.setObjectName('hint');layout.addWidget(hint)
         row=QHBoxLayout();self.button('Save',self._save_settings,row).setProperty('primary',True);self.button('Login Spotify',self._spotify_login,row);layout.addLayout(row);layout.addStretch()
 
     def _save_settings(self):
-        save_settings({'spotify_client_id':self.client_id.text().strip(),'media_on_demand':self.media_on_demand.isChecked(),'clipboard_enabled':self.capture_clipboard.isChecked()})
+        save_settings({'spotify_client_id':self.client_id.text().strip(),'media_on_demand':self.media_on_demand.isChecked(),'clipboard_enabled':self.capture_clipboard.isChecked(),'live_activities':self.live.isChecked()})
         if self.clipboard:self.clipboard.set_enabled(self.capture_clipboard.isChecked())
         self.notify('Saved. Media mode changes apply after restarting Kai.')
 

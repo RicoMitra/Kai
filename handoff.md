@@ -352,6 +352,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 ### [AGENTS.md](AGENTS.md)
 
 - Panduan kerja Kai
+- Kai 4.2 — live activities, focus timer, device pop-ups (31 October 2026)
 - Kai 4.1 — wide, short panel and drag-to-island (31 October 2026)
 - Kai 4.0 layout refresh (27 October 2026)
 - Kai 4.0 — Dynamic Island redesign (27 October 2026, overrides 3.0 visuals)
@@ -436,6 +437,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 ### [docs/07-status-dan-verifikasi.md](docs/07-status-dan-verifikasi.md)
 
 - Status dan verifikasi aktual
+- Kai 4.2 — live activities, focus timer, device pop-ups (31 October 2026)
 - Kai 4.1 — wide, short panel and drag-to-island (31 October 2026)
 - Kai 4.0 layout refresh (27 October 2026)
 - Kai 4.0 — Dynamic Island redesign (27 October 2026, overrides 3.0 visuals)
@@ -572,6 +574,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 ### [docs/20-kai-4-dynamic-island.md](docs/20-kai-4-dynamic-island.md)
 
 - Kai 4.0 — Dynamic Island design reference
+- Kai 4.2 — live activities, focus timer, device pop-ups (31 October 2026)
 - Kai 4.1 — wide, short panel and drag-to-island (31 October 2026)
 - Kai 4.0 layout refresh (27 October 2026)
 - 1. Prinsip

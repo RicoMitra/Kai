@@ -9,6 +9,18 @@ import time
 from events import emit
 
 
+def media_changed(previous, signature, position, now):
+    """Send media updates only on a new track, play/pause, or a jump (seek).
+
+    The island interpolates progress itself, so a cover no longer crosses the
+    process pipe every second while live activities keep the worker running."""
+    if previous is None or previous[0] != signature:
+        return True
+    _, last_position, last_time, playing = previous
+    expected = last_position + (now - last_time if playing else 0)
+    return abs(position - expected) > 2.5
+
+
 def seek_position(timeline,fraction):
     import math
     value=float(fraction)
@@ -100,9 +112,9 @@ class MediaService:
                                'position': position, 'duration': duration, 'updated': time.monotonic(),
                                'cover': cover, 'source': session.source_app_user_model_id}
                     self.snapshot = payload
-                    signature = (key, playing, round(position), duration)
-                    if signature != previous:
-                        previous = signature
+                    signature = (key, playing, round(duration))
+                    if media_changed(previous, signature, position, time.monotonic()):
+                        previous = (signature, position, time.monotonic(), playing)
                         emit('media', payload['title'], payload)
                 except Exception as exc:
                     emit('service_status', f'Media belum tersedia: {exc}', {'service': 'media'})
