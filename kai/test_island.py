@@ -189,6 +189,32 @@ class WindowTests(unittest.TestCase):
             with self.assertRaises(ValueError):seek_position(timeline,float('nan'))
         finally:card.close()
 
+    def test_dragged_file_opens_drop_card_and_routes_by_side(self):
+        from PySide6.QtCore import QMimeData, QUrl, QPointF
+        from PySide6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent
+        window = island.Island(interactive=True, reduced_motion=True)
+        window._timer.stop(); window.show()
+        dropped = []; window.dropped.connect(lambda side, paths: dropped.append((side, paths)))
+        mime = QMimeData(); mime.setUrls([QUrl.fromLocalFile(str(Path(__file__)))])
+        try:
+            start = window.body_rect().center().toPoint()
+            window.dragEnterEvent(QDragEnterEvent(start, Qt.CopyAction, mime, Qt.LeftButton, Qt.NoModifier))
+            self.assertEqual(window._card, 'drop')
+            self.assertTrue(window._open)
+            rect = window.body_rect()
+            self.assertGreater(rect.width(), 400)
+            left = QPointF(rect.left() + rect.width() * .25, rect.center().y()).toPoint()
+            right = QPointF(rect.left() + rect.width() * .75, rect.center().y()).toPoint()
+            window.dragMoveEvent(QDragMoveEvent(left, Qt.CopyAction, mime, Qt.LeftButton, Qt.NoModifier))
+            self.assertEqual(window._drop_target, 'convert')
+            window.dragMoveEvent(QDragMoveEvent(right, Qt.CopyAction, mime, Qt.LeftButton, Qt.NoModifier))
+            self.assertEqual(window._drop_target, 'shelf')
+            window.dropEvent(QDropEvent(QPointF(left), Qt.CopyAction, mime, Qt.LeftButton, Qt.NoModifier))
+            self.assertEqual(dropped, [('convert', [QUrl.fromLocalFile(str(Path(__file__))).toLocalFile()])])
+            self.assertEqual(window._card, 'default')
+        finally:
+            window.close()
+
     def test_notes_simple_add_check_delete_and_autosave(self):
         from storage import Store
         from product_pages import NotesPage

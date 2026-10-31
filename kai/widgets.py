@@ -36,7 +36,7 @@ class PageNavigation(QWidget):
         else:self._position_changed(target)
 
     def resizeEvent(self,event):
-        width=min(300,self.width());left=(self.width()-width)/2
+        width=self.width();left=0
         for index,button in enumerate(self.buttons.values()):button.setGeometry(round(left+index*width/5),0,round(width/5),self.height())
         super().resizeEvent(event)
 
@@ -48,7 +48,7 @@ class PageNavigation(QWidget):
 
     def paintEvent(self,event):
         painter=QPainter(self);painter.setRenderHint(QPainter.Antialiasing);painter.setPen(Qt.NoPen)
-        width=min(300,self.width());left=(self.width()-width)/2;step=width/5;y=self.height()/2
+        width=self.width();left=0;step=width/5;y=self.height()/2
         names=list(self.buttons);position=max(0.,min(len(names)-1.,self.position))
         lower=min(len(names)-1,int(math.floor(position)));upper=min(len(names)-1,lower+1);fraction=position-lower
         painter.setBrush(QColor(255,255,255,48))

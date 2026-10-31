@@ -352,6 +352,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 ### [AGENTS.md](AGENTS.md)
 
 - Panduan kerja Kai
+- Kai 4.1 — wide, short panel and drag-to-island (31 October 2026)
 - Kai 4.0 layout refresh (27 October 2026)
 - Kai 4.0 — Dynamic Island redesign (27 October 2026, overrides 3.0 visuals)
 - Latest UI correction — 24 October 2026
@@ -435,6 +436,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 ### [docs/07-status-dan-verifikasi.md](docs/07-status-dan-verifikasi.md)
 
 - Status dan verifikasi aktual
+- Kai 4.1 — wide, short panel and drag-to-island (31 October 2026)
 - Kai 4.0 layout refresh (27 October 2026)
 - Kai 4.0 — Dynamic Island redesign (27 October 2026, overrides 3.0 visuals)
 - Lyrics lookup correction — 24 October 2026
@@ -570,6 +572,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 ### [docs/20-kai-4-dynamic-island.md](docs/20-kai-4-dynamic-island.md)
 
 - Kai 4.0 — Dynamic Island design reference
+- Kai 4.1 — wide, short panel and drag-to-island (31 October 2026)
 - Kai 4.0 layout refresh (27 October 2026)
 - 1. Prinsip
 - 2. Token
@@ -625,6 +628,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 - Fast Transform
 - Music
 - Notes
+- Drag a file onto Kai
 - Smart Shelf
 - Features
 - Fast Transform
@@ -696,6 +700,7 @@ Generator membaca hanya source/doc proyek, membuat daftar semua MD (dengan headi
 - Fast Transform
 - Music
 - Notes
+- Drag a file onto Kai
 - Smart Shelf
 - Features
 - Fast Transform
@@ -809,6 +814,7 @@ artifacts/productivity/v3-shelf.png
 artifacts/productivity/v4-clipboard.png
 artifacts/productivity/v4-clock.png
 artifacts/productivity/v4-compact.png
+artifacts/productivity/v4-drop.png
 artifacts/productivity/v4-shelf.png
 artifacts/redesign/compact.png
 artifacts/redesign/composition-abi.txt
@@ -922,6 +928,7 @@ README.md
 SECURITY.md
 Setup Kai.cmd
 site/assets/clock.webp
+site/assets/drop.webp
 site/assets/kai-logo.webp
 site/assets/media.webp
 site/assets/music.webp

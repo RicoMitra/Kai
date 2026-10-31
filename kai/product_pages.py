@@ -337,7 +337,9 @@ class ShelfPage(QWidget):
         layout.setSpacing(10)
         self.search=QLineEdit();self.search.setPlaceholderText('Search Shelf');self.search.setClearButtonEnabled(True);layout.addWidget(self.search)
         self.filter=QComboBox();self.filter.addItems(['All','Images','Documents','Folder','Pinned']);self.filter.hide()  # driven from the ••• menu
-        self.files=FileList(store);self.files.setViewMode(QListWidget.IconMode);self.files.setIconSize(QSize(84,54));self.files.setGridSize(QSize(100,90));self.files.setSpacing(2)
+        # Kai 4.1: one horizontal strip of thumbnails keeps Shelf short.
+        self.files=FileList(store);self.files.setViewMode(QListWidget.IconMode);self.files.setFlow(QListWidget.LeftToRight);self.files.setWrapping(False)
+        self.files.setIconSize(QSize(84,54));self.files.setGridSize(QSize(100,90));self.files.setSpacing(2);self.files.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         palette=self.files.palette();palette.setColor(palette.ColorRole.Highlight,QColor(255,255,255,40));self.files.setPalette(palette)  # no tinted thumbnails
         self.files.setContextMenuPolicy(Qt.CustomContextMenu);self.files.customContextMenuRequested.connect(self.context_menu);self.files.setToolTip('Double-click to open · drag out to share · right-click for more')
         self.files.setMovement(QListWidget.Static);self.files.setResizeMode(QListWidget.Adjust);self.files.setSelectionMode(QAbstractItemView.ExtendedSelection);self.files.setDragEnabled(True)
@@ -348,7 +350,7 @@ class ShelfPage(QWidget):
         self.count,self.clear_all=footer(layout,self.delete_all);self.clear_all.setToolTip('Click twice to empty Shelf · original files stay on disk')
         self.search.textChanged.connect(self.refresh);self.filter.currentIndexChanged.connect(self.refresh);self.files.changed.connect(self.refresh);self.files.itemDoubleClicked.connect(self.open_file)
         self.thumbnail_timer=QTimer(self);self.thumbnail_timer.setSingleShot(True);self.thumbnail_timer.timeout.connect(self.next_thumbnail)
-        self.files.currentItemChanged.connect(self.preview_item);self.files.verticalScrollBar().valueChanged.connect(lambda _:self.schedule_thumbnails())
+        self.files.currentItemChanged.connect(self.preview_item);self.files.horizontalScrollBar().valueChanged.connect(lambda _:self.schedule_thumbnails())
         self.icons=[file_icon(),file_icon(folder=True),file_icon(image=True)];self.refresh()
 
     def refresh(self,*_):
@@ -456,17 +458,18 @@ class TransformPage(QWidget):
     message=Signal(str)
     def __init__(self,store,parent=None):
         super().__init__(parent);self.store=store;self.inputs=[];self.outputs=[];self.folder=None;self.running=False;self.setAcceptDrops(True)
-        layout=QVBoxLayout(self);layout.setContentsMargins(0,0,0,0);layout.setSpacing(12)
-        self.zone=DropZone();self.zone.clicked.connect(lambda:self.choose());layout.addWidget(self.zone,1)
+        # Kai 4.1 wide layout: drop zone left, formats and actions right.
+        outer=QHBoxLayout(self);outer.setContentsMargins(0,0,0,0);outer.setSpacing(16)
+        self.zone=DropZone();self.zone.setMinimumHeight(96);self.zone.clicked.connect(lambda:self.choose());outer.addWidget(self.zone,5)
+        layout=QVBoxLayout();layout.setSpacing(10);outer.addLayout(layout,4)
         self.source=QButtonGroup(self);self.format=QButtonGroup(self)
-        row=QHBoxLayout();row.setSpacing(6)
         for group,labels,caption in ((self.source,('PNG','JPG','PDF','Word'),'FROM'),(self.format,('PDF','MD','Word'),'TO')):
-            heading=QLabel(caption);heading.setObjectName('caption');row.addWidget(heading)
+            row=QHBoxLayout();row.setSpacing(6)
+            heading=QLabel(caption);heading.setObjectName('caption');heading.setFixedWidth(44);row.addWidget(heading)
             for index,label in enumerate(labels):
                 item=QPushButton(label);item.setObjectName('chip');item.setCheckable(True);item.setCursor(Qt.PointingHandCursor);group.addButton(item,index);row.addWidget(item)
-            group.button(0).setChecked(True)
-            if caption=='FROM':row.addStretch(1)
-        layout.addLayout(row)
+            group.button(0).setChecked(True);row.addStretch(1);layout.addLayout(row)
+        layout.addStretch(1)
         self.source.idClicked.connect(self.choose)
         self.results=QListWidget();self.results.hide()  # result path kept for Save; shown in the drop zone
         row=QHBoxLayout();row.setSpacing(8);self.info=QLabel();self.info.setObjectName('hint');self.info.hide();row.addWidget(self.info,1)

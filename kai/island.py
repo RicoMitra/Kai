@@ -94,6 +94,7 @@ class Bridge(QObject):
 
 class Island(QWidget):
     requested = Signal(str)
+    dropped = Signal(str, list)   # ('convert' | 'shelf', local paths)
 
     def __init__(self, reduced_motion=False, demo=False, interactive=False):
         super().__init__()
@@ -115,6 +116,8 @@ class Island(QWidget):
         self._detail_motion = Spring(frequency=28)
         self._height_motion = Spring(value=280,frequency=28)
         self._notice_motion = Spring(frequency=28)
+        self._drop_motion = Spring(frequency=26)
+        self._drop_ready, self._drop_target = False, None
         self._detail = 0.0
         self._deck = None
         self._deck_open = False
@@ -171,7 +174,8 @@ class Island(QWidget):
         geometry = screen.geometry()
         self._panel_width = min(config.ISLAND_EXPANDED_WIDTH, max(200, geometry.width() - 64))
         # ponytail: fixed canvas; interactive regions arrive with real media controls.
-        self._deck_width = min(540, max(300, geometry.width()-64))
+        # Kai 4.1: wider and shorter panel so it takes less of the screen.
+        self._deck_width = min(config.ISLAND_DECK_WIDTH, max(300, geometry.width()-64))
         width = self._deck_width + 64
         self.setGeometry(geometry.center().x() - width // 2, geometry.y(), width, 420)
 
@@ -181,6 +185,9 @@ class Island(QWidget):
         pull = max(0.0, self._pull.value) * max(0.0, 1 - p)
         compact_width=lerp(self._panel_width,min(self._panel_width,290),self._notice_motion.value)
         compact_height=lerp(config.ISLAND_EXPANDED_HEIGHT,56,self._notice_motion.value)
+        drop = self._drop_motion.value
+        compact_width = lerp(compact_width, config.ISLAND_DROP_WIDTH, drop)
+        compact_height = lerp(compact_height, config.ISLAND_DROP_HEIGHT, drop)
         expanded_width = lerp(compact_width,self._deck_width,self._detail)
         expanded_height = lerp(compact_height,self._height_motion.value,self._detail)
         width = lerp(config.ISLAND_COLLAPSED_WIDTH + 12 * pull, expanded_width, p)
@@ -214,10 +221,56 @@ class Island(QWidget):
         cursor=QCursor.pos()
         navigation_hold=self._deck_open and self._navigation_anchor is not None and (cursor-self._navigation_anchor).manhattanLength()<=8
         if not navigation_hold:self._navigation_anchor=None
-        expanded = self._presence.update(bool(owns_focus) or navigation_hold or self._hot_rect().contains(cursor), now)
+        self._watch_drag(cursor)
+        expanded = self._presence.update(bool(owns_focus) or navigation_hold or self._card == 'drop' or self._hot_rect().contains(cursor), now)
         self._attend(cursor, expanded)
         if expanded != self._open:
             self.open_island() if expanded else self.close_island()
+
+    # --- Drag a file onto the island: Convert | Shelf -------------------------
+    def _drop_zone(self):
+        """Generous global area above the collapsed pill where a dragged file wakes Kai."""
+        width, height = config.ISLAND_DROP_WIDTH + 80, config.ISLAND_DROP_HEIGHT + 40
+        rect = QRectF((self.width() - width) / 2, 0, width, height)
+        return QRect(self.mapToGlobal(rect.topLeft().toPoint()), rect.size().toSize())
+
+    @staticmethod
+    def _button_held():
+        if sys.platform == 'win32':
+            import ctypes
+            return bool(ctypes.WinDLL('user32').GetAsyncKeyState(0x01) & 0x8000)
+        return QApplication.mouseButtons() != Qt.NoButton
+
+    def _watch_drag(self, cursor):
+        """While a button is held near the top, let Windows deliver drag events to Kai.
+
+        The collapsed pill is click-through, so OLE drag-enter never reached it before.
+        A window move or text selection keeps mouse capture elsewhere and never sends
+        drag-enter, so only real file drags open the drop card."""
+        if not self.interactive:
+            return
+        held = self._button_held()
+        ready = held and not self._deck_open and (self._card == 'drop' or self._drop_zone().contains(cursor))
+        if ready != self._drop_ready:
+            self._drop_ready = ready
+            self._input_enabled = None   # force a style refresh
+            self._sync_input()
+        if self._card == 'drop' and not held:
+            self._end_drop()
+
+    def _drop_side(self, position):
+        rect = self.body_rect()
+        if not rect.contains(position):
+            return None
+        return 'convert' if position.x() < rect.center().x() else 'shelf'
+
+    def _end_drop(self):
+        if self._card != 'drop':
+            return
+        self._card, self._card_until, self._drop_target = 'default', 0.0, None
+        self._presence.pin_until = time.monotonic() + .4
+        self._target(float(self._open))
+        self.update()
 
     def _attend(self, cursor, expanded):
         """Eyes look toward the pointer; the pill leans in as it approaches."""
@@ -254,6 +307,7 @@ class Island(QWidget):
         self._motion.frequency = config.ISLAND_SPRING_FREQUENCY if opening else 26.0
         self._tall.damping, self._tall.frequency = (.85, 20.0) if opening else (1.0, 26.0)
         self._notice_motion.target=float(self._card in ('shelf','result','error','context') and not self._deck_open)
+        self._drop_motion.target=float(self._card == 'drop' and not self._deck_open)
         if self.reduced_motion:
             self._motion.value, self._motion.velocity = target, 0.0
             self._tall.value, self._tall.velocity = target, 0.0
@@ -264,6 +318,7 @@ class Island(QWidget):
             self._detail = self._detail_motion.value
             self._height_motion.value = self._height_motion.target
             self._notice_motion.value=self._notice_motion.target;self._notice_motion.velocity=0
+            self._drop_motion.value=self._drop_motion.target;self._drop_motion.velocity=0
             self._p = target
             self._after_anim()
             self._sync_input()
@@ -294,12 +349,13 @@ class Island(QWidget):
         self._detail = self._detail_motion.step(now - self._last_frame)
         self._height_motion.step(now - self._last_frame)
         self._notice_motion.step(now-self._last_frame)
+        self._drop_motion.step(now-self._last_frame)
         self._last_frame = now
         self._sync_input()
         self._sync_glass()
         self._sync_deck()
         self.update()
-        springs = (self._motion, self._tall, self._detail_motion, self._height_motion, self._notice_motion, self._look, self._pull)
+        springs = (self._motion, self._tall, self._detail_motion, self._height_motion, self._notice_motion, self._drop_motion, self._look, self._pull)
         if all(spring.settled for spring in springs) and not self._blinking():
             self._after_anim()
             if self.reduced_motion or self._tone != 'listen' or not self._open:
@@ -438,7 +494,7 @@ class Island(QWidget):
     def _sync_input(self):
         if not self.interactive:
             return
-        enabled = self._open and self._p > 0.6
+        enabled = (self._open and self._p > 0.6) or self._drop_ready
         if enabled != self._input_enabled or getattr(self,"_last_deck_input",None) != self._deck_open:
             self._last_deck_input = self._deck_open
             self._input_enabled = enabled
@@ -456,7 +512,11 @@ class Island(QWidget):
             # 1.5 DIP margin keeps the antialiased edge; the region itself is aliased.
             rect = self.body_rect()
             path = body_path(rect.adjusted(-1.5,-1.5,1.5,1.5),self._radius(rect)+1.5)
-            self.setMask(QRegion(path.toFillPolygon().toPolygon()))
+            region = QRegion(path.toFillPolygon().toPolygon())
+            if self._drop_ready:
+                zone = self._drop_zone()
+                region = region.united(QRegion(QRect(self.mapFromGlobal(zone.topLeft()), zone.size())))
+            self.setMask(region)
 
     def _sync_glass(self):
         # Opaque black/album tint needs no native backdrop or blur surface.
@@ -471,7 +531,7 @@ class Island(QWidget):
         return 'default'
 
     def mousePressEvent(self, event):
-        if not self.interactive or not self._open: return
+        if not self.interactive or not self._open or self._card == 'drop': return
         if event.button() == Qt.RightButton:
             self.requested.emit('settings'); return
         if self._card=='context':self.requested.emit('context');return
@@ -504,27 +564,38 @@ class Island(QWidget):
         super().showEvent(event)
 
     def dragEnterEvent(self, event):
-        if self.interactive and event.mimeData().hasUrls():
-            self._presence.pin_until = time.monotonic() + 15
+        if not (self.interactive and event.mimeData().hasUrls()):
+            return
+        if self._deck_open:
+            event.ignore(); return   # the open page handles its own drops
+        if self._card != 'drop':
+            self._card, self._card_until = 'drop', float('inf')
+            self._presence.pin_until = time.monotonic() + 1
             self.open_island()
-            event.acceptProposedAction()
+            self._target(1.0)
+        self._drop_target = self._drop_side(event.position())
+        event.acceptProposedAction()
+        self.update()
 
     def dragMoveEvent(self, event):
-        self.dragEnterEvent(event)
+        if self._card != 'drop':
+            self.dragEnterEvent(event); return
+        target = self._drop_side(event.position())
+        if target != self._drop_target:
+            self._drop_target = target; self.update()
+        event.acceptProposedAction()
+
+    def dragLeaveEvent(self, event):
+        self._drop_target = None
+        self.update()
 
     def dropEvent(self, event):
-        from storage import get_store
-        count = 0
-        for url in event.mimeData().urls()[:100]:
-            if url.isLocalFile():
-                try:
-                    get_store().add_file(url.toLocalFile()); count += 1
-                except ValueError:
-                    pass
+        paths = [url.toLocalFile() for url in event.mimeData().urls()[:100] if url.isLocalFile()]
+        side = self._drop_side(event.position()) or 'shelf'
         event.acceptProposedAction()
-        self._card = 'default'
-        self._card_until = 0.0
-        self.requested.emit('shelf')
+        self._end_drop()
+        if paths:
+            self.dropped.emit(side, paths)
 
     def paintEvent(self, _):
         p = max(0.0, min(1.0, self._p))
@@ -612,6 +683,10 @@ class Island(QWidget):
             self._draw_card(qp, w, h, mode)
             qp.restore()
             return
+        if self._card == 'drop':
+            self._draw_drop(qp, w, h)
+            qp.restore()
+            return
         default = self._tone == 'idle' and self._main == 'Kai is ready'
         if default:
             now=dt.datetime.now()
@@ -652,6 +727,24 @@ class Island(QWidget):
             if chip:
                 self._chip(qp, QRectF(w-76, h/2-14, 58, 28), chip, tone, '#ffffff')
         qp.restore()
+
+    def _draw_drop(self, qp, w, h):
+        """Two tiles: Convert (orange) and Shelf (purple); the one under the file lights up."""
+        gap, pad = 8, 8
+        tile_w = (w - 2 * pad - gap) / 2
+        for index, (key, title, detail, color) in enumerate((
+                ('convert', 'Convert', 'PDF · Markdown · Word', '#ff9f0a'),
+                ('shelf', 'Shelf', 'Keep it for later', '#bf5af2'))):
+            rect = QRectF(pad + index * (tile_w + gap), pad, tile_w, h - 2 * pad)
+            active = self._drop_target == key
+            tone = QColor(color); fill = QColor(tone); fill.setAlpha(70 if active else 26)
+            qp.setPen(QPen(tone if active else QColor(255, 255, 255, 30), 1.4 if active else 1, Qt.SolidLine if active else Qt.DashLine))
+            qp.setBrush(fill); radius = min(24, rect.height() / 2)
+            qp.drawRoundedRect(rect.adjusted(.5, .5, -.5, -.5), radius, radius)
+            center = QPointF(rect.x() + 34, rect.center().y())
+            self._glyph(qp, center, 'link' if key == 'convert' else 'shelf', color)
+            self._text(qp, QRectF(rect.x() + 60, rect.center().y() - 20, rect.width() - 70, 22), title, 15, '#ffffff', QFont.DemiBold)
+            self._text(qp, QRectF(rect.x() + 60, rect.center().y() + 1, rect.width() - 70, 18), detail, 11, '#ffffff' if active else LABEL2)
 
     def _control(self, qp, center, symbol):
         primary = symbol in ('play', 'pause')
@@ -854,6 +947,19 @@ def run_island(demo=False, reduced_motion=False, media_on_demand=None):
             (log/'session.json').write_text(json.dumps({'version':config.APP_VERSION,'pid':os.getpid(),'features':['Transform','Clipboard','Notes','Shelf','Media'],'hover_clock':True,'hotkey_available':shortcuts.available}),encoding='utf-8')
         except OSError:pass
     window.requested.connect(requested)
+    def dropped(side, paths):
+        # Files dragged onto the island: convert the first one, or keep them in Shelf.
+        if side == 'convert':
+            show_panel('Transform')
+            panels['panel']._transform_files(paths[:1])
+            if len(paths) > 1: events.emit('result', 'Fast Transform converts one file at a time')
+            return
+        from storage import get_store
+        for path in paths:
+            try: get_store().add_file(path)
+            except ValueError: pass
+        show_panel('Shelf')
+    window.dropped.connect(dropped)
     bridge = Bridge(window)
     bridge.sig.connect(window.on_event, Qt.QueuedConnection)
     def receive(ev):

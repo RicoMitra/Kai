@@ -1,5 +1,9 @@
 # Panduan kerja Kai
 
+## Kai 4.1 — wide, short panel and drag-to-island (31 October 2026)
+
+The panel is now **680 DIP wide and 220–250 DIP tall** (was 540 × 330–380) so it covers less of the screen; page dots moved into the header. Fast Transform puts the drop zone left and FROM/TO chips + actions right; Shelf is one horizontal thumbnail strip with a preview. **Drag a file toward the top centre:** while the mouse button is held near the pill, Kai becomes a drop target; a real file drag opens a 440 × 92 card with **Convert** (orange) and **Shelf** (purple) halves that light up under the file. Dropping on Convert opens Fast Transform with that file; dropping on Shelf adds the files and opens Shelf. Window moves and text selection never send drag-enter, so they do not open the card. 46 unit tests pass (new drag routing test). The real Explorer-to-Kai drag was not exercised automatically because native checks move the pointer.
+
 ## Kai 4.0 layout refresh (27 October 2026)
 
 Pages were rebuilt for a calmer Dynamic Island feel: header = accent dot, title, ••• menu, close (Settings moved into •••). Rows of buttons were removed; actions live in right-click and ••• menus. Fast Transform uses one drop zone with FROM/TO chips and a single Convert; Save/Clear appear only with a result. Notes has an always-visible New note field and a hover × per row. Clipboard, Notes and Shelf have a quiet two-click **Clear all** (Shelf drops references only; files stay). Hover capsule: large clock with breathing colon, weekday/date right-aligned; the Ctrl Alt Space chip was removed at the owner's request. `tools/check_appearance.py` now renders hidden and never moves the pointer. 45 unit tests pass.

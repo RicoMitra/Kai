@@ -37,7 +37,8 @@ Kai 4.0 adapts the iPhone Dynamic Island to a Windows pointer-and-keyboard workf
 - **Collapsed:** a 72 × 24 DIP black pill with two vector-painted white eyes. The eyes follow the pointer, the pill leans in slightly as the pointer approaches, and the eyes blink every few seconds only while the island is idle.
 - **Hover:** a 320 × 68 DIP capsule with a large clock (the colon breathes once a second) and the weekday and date. While media is known, it shows a live-activity card instead: cover, title, artist, progress and transport controls.
 - **Floating capsule:** every state floats 8 DIP below the screen edge with fully rounded corners. The robot logo is used only as the application icon (Kai.exe, shortcut and tray), never inside the island.
-- **Controls:** a 540 DIP wide panel. The header has only an accent dot, the page title, a **•••** menu and close. Page actions live in the ••• menu and in right-click menus, so the pages show content instead of rows of buttons.
+- **Drag and drop:** drag a file toward the top centre and the island opens a **Convert | Shelf** card; drop on a half to convert the file or keep it in Shelf.
+- **Controls:** a wide, short panel (680 × 220–250 DIP) with the page dots in the header. The header has the accent dot, page title, page dots, a **•••** menu and close. Page actions live in the ••• menu and in right-click menus, so the pages show content instead of rows of buttons.
 - **Navigation:** five dots. The selected page has a marker in its accent colour (Transform orange, Clipboard blue, Notes yellow, Shelf purple, Music green) that blends colour and stretches while travelling. Tooltips, accessible names and Left/Right keyboard navigation remain.
 - **Motion:** opening uses a slightly underdamped spring (width leads height) for a soft overshoot; closing is crisp and critically damped. Content fades and scales in, the panel is revealed like a curtain while the capsule morphs, and pages glide in from the direction of travel. Animation timers stop when settled. Reduce motion snaps everything and disables the eye motion.
 - **Playback colour:** only the open Music page, while a track is playing, receives a dark gradient and a progress colour derived from its cover. There is no full-size background blur or native backdrop surface.
@@ -62,6 +63,10 @@ The screenshots below are generated acceptance fixtures rendered off-screen: the
 ### Notes
 
 ![Notes list with a new-note field](artifacts/productivity/notes-black.png)
+
+### Drag a file onto Kai
+
+![Convert and Shelf drop card](artifacts/productivity/v4-drop.png)
 
 ### Smart Shelf
 

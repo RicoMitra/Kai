@@ -19,6 +19,10 @@ ISLAND_SPRING_FREQUENCY = 22.0
 ISLAND_SPRING_DAMPING = 0.78
 ISLAND_COMPACT_RADIUS = 34
 ISLAND_DECK_RADIUS = 30
+# Kai 4.1: wide and short panel; drag-and-drop card size.
+ISLAND_DECK_WIDTH = 680
+ISLAND_DROP_WIDTH = 440
+ISLAND_DROP_HEIGHT = 92
 ISLAND_MAGNET_DISTANCE = 150
 
 # Apple system dark accents (docs/20-kai-4-dynamic-island.md).

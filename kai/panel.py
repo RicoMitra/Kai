@@ -103,6 +103,8 @@ class ControlPanel(QWidget):
         header=QHBoxLayout();header.setSpacing(10)
         self.dot=QLabel();self.dot.setFixedSize(8,8);header.addWidget(self.dot)
         self.heading=QLabel('Fast Transform');self.heading.setObjectName('heading');header.addWidget(self.heading);header.addStretch()
+        # Kai 4.1: page dots live in the header, saving a whole row of height.
+        self.navigation=PageNavigation(self);self.navigation.setFixedWidth(190);self.navigation.selected.connect(self.open_page);self._nav=self.navigation.buttons;header.addWidget(self.navigation);header.addStretch()
         self.more=self.button('•••',self._show_menu,header);self.more.setObjectName('icon');self.more.setToolTip('More · actions and settings');self.more.setAccessibleName('More')
         close=self.button('✕',self.dismissed.emit,header);close.setObjectName('icon');close.setToolTip('Close · Escape');close.setAccessibleName('Close');layout.addLayout(header)
         self.tabs=QStackedWidget();layout.addWidget(self.tabs,1)
@@ -110,7 +112,6 @@ class ControlPanel(QWidget):
         for name in ('Transform','Clipboard','Notes','Shelf','Media','Atur'):
             widget=QWidget();self._pages[name]=widget;self.tabs.addWidget(widget)
         self.status=QLabel('');self.status.setObjectName('status');self.status.setTextFormat(Qt.PlainText);self.status.setVisible(False);layout.addWidget(self.status)
-        self.navigation=PageNavigation(self);self.navigation.selected.connect(self.open_page);self._nav=self.navigation.buttons;layout.addWidget(self.navigation)
         self.escape=QShortcut(QKeySequence('Escape'),self);self.escape.activated.connect(self.dismissed.emit)
         self.timer=QTimer(self);self.timer.setInterval(1000);self.timer.timeout.connect(self._refresh)
         self.slide=QVariantAnimation(self);self.slide.setDuration(260);self.slide.setEasingCurve(QEasingCurve.OutCubic)
@@ -210,7 +211,8 @@ class ControlPanel(QWidget):
         self.navigation.select(name,animate=not reduced)
 
     def preferred_height(self):
-        return {'Media':300,'Shelf':380,'Clipboard':340,'Notes':340,'Transform':330,'Atur':300}.get(self.current_page(),320)
+        # Wide and short: every page stays near the reference music card height.
+        return {'Media':250,'Shelf':236,'Clipboard':236,'Notes':236,'Transform':220,'Atur':250}.get(self.current_page(),236)
 
     def _sync_media_service(self,*_):
         if hasattr(self.media,'set_active'):self.media.set_active(not self._closed and self.current_page()=='Media')
