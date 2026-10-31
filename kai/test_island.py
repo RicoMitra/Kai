@@ -192,6 +192,9 @@ class WindowTests(unittest.TestCase):
     def test_live_pill_grows_for_music_and_focus_then_rests(self):
         self.window.set_reduced_motion(True)
         rest = self.window.body_rect().width()
+        self.window.on_event('volume', 'Volume 40%', {'level': 40})
+        self.window.on_event('device', 'Audio device connected', {'name': 'Headset', 'connected': True})
+        self.assertEqual(self.window._card, 'default')   # pop-ups removed
         self.window.on_event('media', '', {'title': 'Owned sample', 'artist': 'Test', 'playing': True, 'duration': 200, 'position': 5})
         self.assertEqual(self.window._live_kind(), 'music')
         self.assertEqual(self.window.body_rect().width(), island.config.ISLAND_LIVE_WIDTH)
@@ -207,14 +210,8 @@ class WindowTests(unittest.TestCase):
         self.assertIsNone(self.window._live_kind())
         self.assertEqual(self.window.body_rect().width(), rest)
 
-    def test_battery_and_media_notices_stay_quiet_unless_something_changes(self):
+    def test_media_updates_cross_the_pipe_only_when_something_changes(self):
         from native import media_changed
-        self.assertIsNone(island.battery_notice(None, 55, False))
-        self.assertIsNone(island.battery_notice((55, False), 54, False))
-        self.assertEqual(island.battery_notice((21, False), 20, False), 'Battery 20% · plug in soon')
-        self.assertEqual(island.battery_notice((11, False), 10, False), 'Battery 10% · plug in soon')
-        self.assertEqual(island.battery_notice((40, False), 40, True), 'Charging · 40%')
-        self.assertIsNone(island.battery_notice((40, True), 41, True))
         signature = (('Song', 'Artist', ''), True, 200)
         previous = (signature, 10.0, 100.0, True)
         self.assertFalse(media_changed(previous, signature, 13.0, 103.0))   # normal playback

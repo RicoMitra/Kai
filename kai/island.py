@@ -88,34 +88,6 @@ class Presence:
         return self.expanded
 
 
-def read_battery():
-    """(percent, charging) from GetSystemPowerStatus, or None on a desktop PC."""
-    if sys.platform != 'win32':
-        return None
-    import ctypes
-    class Status(ctypes.Structure):
-        _fields_ = [('ac', ctypes.c_ubyte), ('flag', ctypes.c_ubyte), ('percent', ctypes.c_ubyte),
-                    ('saver', ctypes.c_ubyte), ('life', ctypes.c_ulong), ('full', ctypes.c_ulong)]
-    status = Status()
-    if not ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(status)) or status.flag & 128 or status.percent > 100:
-        return None
-    return status.percent, status.ac == 1
-
-
-def battery_notice(previous, level, charging):
-    """Text for a battery pop-up: plugged in, or dropping to 20% / 10%. None = stay quiet."""
-    if previous is None:
-        return f'Battery {level}% · plug in soon' if not charging and level <= 10 else None
-    old_level, old_charging = previous
-    if charging and not old_charging:
-        return f'Charging · {level}%'
-    if not charging:
-        for threshold in (10, 20):
-            if level <= threshold < old_level:
-                return f'Battery {level}% · plug in soon'
-    return None
-
-
 class Bridge(QObject):
     sig = Signal(str, str, object)
 
@@ -146,7 +118,7 @@ class Island(QWidget):
         self._notice_motion = Spring(frequency=28)
         self._drop_motion = Spring(frequency=26)
         self._live_motion = Spring(frequency=22, damping=.8)
-        self._live_shown, self._card_data, self._battery = None, {}, None
+        self._live_shown, self._card_data = None, {}
         self._drop_ready, self._drop_target = False, None
         self._detail = 0.0
         self._deck = None
@@ -186,12 +158,6 @@ class Island(QWidget):
         self._live_timer = QTimer(self)
         self._live_timer.setInterval(90)
         self._live_timer.timeout.connect(self._live_frame)
-        if interactive:
-            self._battery_timer = QTimer(self)
-            self._battery_timer.setInterval(60_000)
-            self._battery_timer.timeout.connect(self._check_battery)
-            self._battery_timer.start()
-            QTimer.singleShot(4000, self._check_battery)
         self._blink = QTimer(self)
         self._blink.setSingleShot(True)
         self._blink.timeout.connect(self._start_blink)
@@ -349,7 +315,7 @@ class Island(QWidget):
         self._motion.damping = config.ISLAND_SPRING_DAMPING if opening else 1.0
         self._motion.frequency = config.ISLAND_SPRING_FREQUENCY if opening else 26.0
         self._tall.damping, self._tall.frequency = (.85, 20.0) if opening else (1.0, 26.0)
-        self._notice_motion.target=float(self._card in ('shelf','result','error','context','device','battery','timer_started','timer_done') and not self._deck_open)
+        self._notice_motion.target=float(self._card in ('shelf','result','error','context','timer_started','timer_done') and not self._deck_open)
         self._drop_motion.target=float(self._card == 'drop' and not self._deck_open)
         kind = self._live_kind()
         if kind: self._live_shown = kind
@@ -460,13 +426,6 @@ class Island(QWidget):
         self._job = None
         self._target(float(self._open)); self.update()
 
-    def _check_battery(self):
-        status = read_battery()
-        if status is None: return
-        notice = battery_notice(self._battery, *status)
-        self._battery = status
-        if notice: self.on_event('battery', notice, {'level': status[0], 'charging': status[1]})
-
     def attach_deck(self, panel):
         if self._deck is not panel:
             panel.dismissed.connect(self.collapse_deck)
@@ -550,21 +509,21 @@ class Island(QWidget):
             self._target(float(self._open))   # live pill grows or shrinks with playback
             self.update()
             return
-        if kind in ('audio_state', 'volume'):
-            self._audio = data or {}
-            if kind == 'audio_state': return
+        if kind in ('audio_state', 'volume', 'device', 'battery'):
+            if kind != 'device': self._audio = data or {}
+            return   # owner removed volume/device/battery pop-ups
         if kind == 'timer_started':
             self._job = data
         if self._card == 'timer_done' and kind not in ('listening', 'error', 'timer_done'):
             return
-        if kind in ('device', 'battery', 'timer_done', 'timer_started'):
+        if kind in ('timer_done', 'timer_started'):
             self._card_data = data or {}
         if kind in ('info', 'intent'):
             return
         duration = {'loading': 120, 'ready': 2.5, 'listening': 30, 'processing': 30,
                     'heard': 10, 'result': 3.5, 'timer_done': float('inf'), 'error': 5,
                     'volume': 1.8, 'device': 3.5, 'timer_started': 2.5, 'weather': 5,
-                    'shelf': 3,'context':4,'battery':4.5}.get(kind)
+                    'shelf': 3,'context':4}.get(kind)
         if duration is None:
             return
         if kind == 'listening':
@@ -718,7 +677,11 @@ class Island(QWidget):
             qp.drawPath(body_path(rect.adjusted(1, 1, -1, -1), radius - 1))
         if p<.45:
             fade, live = 1-p/.45, min(1.0, max(0.0, self._live_motion.value))
-            if live < 1: self._draw_eyes(qp, rect, fade * (1 - live))
+            if self._live_shown == 'music':
+                # The eyes stay; they glide left to make room for the waveform.
+                self._draw_eyes(qp, rect, fade, lerp(rect.center().x(), rect.x() + 26, live))
+            elif live < 1:
+                self._draw_eyes(qp, rect, fade * (1 - live))
             if live > 0: self._draw_live(qp, rect, fade * live)
         alpha = min(1.0, max(0.0, (p - 0.55) / 0.4))
         alpha *= max(0,1-self._detail*2)
@@ -749,11 +712,6 @@ class Island(QWidget):
             self._text(qp, QRectF(rect.right() - 62, rect.y(), 52, h), f'{minutes:02}:{seconds:02}', 13,
                        '#ffffff' if job['state'] == 'running' else LABEL2, QFont.DemiBold, Qt.AlignRight)
         else:
-            path = QPainterPath(); path.addRoundedRect(left, 6, 6)
-            if not self._cover.isNull():
-                qp.save(); qp.setClipPath(path, Qt.IntersectClip); qp.drawPixmap(left, self._cover, QRectF(self._cover.rect())); qp.restore()
-            else:
-                qp.setPen(Qt.NoPen); qp.setBrush(QColor(255, 255, 255, 40)); qp.drawPath(path)
             color = self._album_color.lighter(330) if self._album_color is not None else QColor('#30d158')
             if color.lightness() < 120: color = QColor('#30d158')
             playing = self._media.get('playing') and not self.reduced_motion
@@ -765,14 +723,14 @@ class Island(QWidget):
                 qp.drawRoundedRect(QRectF(x - 1.5, rect.center().y() - bar / 2, 3, bar), 1.5, 1.5)
         qp.restore()
 
-    def _draw_eyes(self, qp, rect, opacity):
+    def _draw_eyes(self, qp, rect, opacity, center_x=None):
         t = (time.perf_counter() - self._blink_started) / .14
         height = 10 * (1 - .85 * math.sin(math.pi * t)) if 0 <= t < 1 else 10
         look = self._look.value * 2.5
         spread = 1 + .12 * max(0.0, self._pull.value)
         qp.save();qp.setOpacity(opacity);qp.setPen(Qt.NoPen);qp.setBrush(Qt.white)
         for offset in (-6.5,6.5):
-            qp.drawRoundedRect(QRectF(rect.center().x()+offset*spread+look-2,rect.center().y()-height/2,4,height),2,min(2,height/2))
+            qp.drawRoundedRect(QRectF((rect.center().x() if center_x is None else center_x)+offset*spread+look-2,rect.center().y()-height/2,4,height),2,min(2,height/2))
         qp.restore()
 
     def _text(self, qp, rect, text, size=14, color='#ffffff', weight=QFont.Normal, align=Qt.AlignLeft, spacing=0):
@@ -800,21 +758,6 @@ class Island(QWidget):
         elif kind == 'shelf':
             path = QPainterPath(QPointF(x-7,y-1)); path.lineTo(x-7,y+5); path.lineTo(x+7,y+5); path.lineTo(x+7,y-1); qp.drawPath(path)
             qp.drawLine(QPointF(x-3,y-1),QPointF(x+3,y-1)); qp.drawLine(QPointF(x,y-7),QPointF(x,y-1))
-        elif kind == 'speaker':
-            cone = QPainterPath(QPointF(x-8,y-2.5)); cone.lineTo(x-4.5,y-2.5); cone.lineTo(x,y-6.5); cone.lineTo(x,y+6.5); cone.lineTo(x-4.5,y+2.5); cone.lineTo(x-8,y+2.5); cone.closeSubpath()
-            qp.setBrush(tone); qp.drawPath(cone); qp.setBrush(Qt.NoBrush)
-            if self._audio.get('mute'):
-                qp.drawLine(QPointF(x+3,y-3),QPointF(x+8,y+3)); qp.drawLine(QPointF(x+8,y-3),QPointF(x+3,y+3))
-            else:
-                qp.drawArc(QRectF(x-3,y-4,8,8),-50*16,100*16); qp.drawArc(QRectF(x-3,y-8,14,16),-50*16,100*16)
-        elif kind == 'device':
-            # Headphones: band arc + two ear cups.
-            qp.drawArc(QRectF(x-7,y-7,14,14), 0, 180*16)
-            qp.setBrush(tone); qp.drawRoundedRect(QRectF(x-8,y-1,4,7),1.5,1.5); qp.drawRoundedRect(QRectF(x+4,y-1,4,7),1.5,1.5)
-        elif kind == 'battery':
-            level = max(0, min(100, self._card_data.get('level', 0)))
-            qp.drawRoundedRect(QRectF(x-8,y-4.5,14,9),2,2); qp.drawLine(QPointF(x+8,y-1.5),QPointF(x+8,y+1.5))
-            qp.setPen(Qt.NoPen); qp.setBrush(tone); qp.drawRoundedRect(QRectF(x-6.5,y-3,11*level/100,6),1,1)
         else:
             for dx in (-5,0,5): qp.drawPoint(QPointF(x+dx,y))
 
@@ -863,17 +806,7 @@ class Island(QWidget):
                 url = self._context.get('action') == 'url'
                 tone, kind, label = ('#0a84ff','link','LINK') if url else ('#bf5af2','shelf','SHELF')
                 chip = 'Open' if url else 'View'
-            data = self._card_data
-            if self._card == 'device':
-                connected = data.get('connected', True)
-                tone, kind = ('#30d158', 'device') if connected else ('#9b9ba1', 'device')
-                label = 'CONNECTED' if connected else 'DISCONNECTED'
-                self._main = data.get('name') or self._main
-            elif self._card == 'battery':
-                level, charging = data.get('level', 0), data.get('charging', False)
-                tone = '#30d158' if charging else '#ff453a' if level <= 10 else '#ff9f0a'
-                kind, label = 'battery', 'CHARGING' if charging else 'LOW BATTERY'
-            elif self._card in ('timer_started', 'timer_done'):
+            if self._card in ('timer_started', 'timer_done'):
                 tone, kind = ('#30d158', 'ok') if self._card == 'timer_done' else ('#ff9f0a', 'busy')
                 label = 'FOCUS DONE' if self._card == 'timer_done' else 'FOCUS'
             if self.demo and self._tone == 'listen':
@@ -931,7 +864,7 @@ class Island(QWidget):
 
     def _draw_card(self, qp, w, h, mode):
         if mode == 'volume':
-            self._glyph(qp, QPointF(32, h/2), 'speaker', '#ffffff')
+            self._glyph(qp, QPointF(32, h/2), 'busy', '#ffffff')
             level = self._audio.get('level', 0)
             self._text(qp, QRectF(62, 10, w-82, 22), 'Muted' if self._audio.get('mute') else f'Volume {level}%', 14, weight=QFont.DemiBold)
             qp.setPen(QPen(QColor(255,255,255,40), 6, Qt.SolidLine, Qt.RoundCap))

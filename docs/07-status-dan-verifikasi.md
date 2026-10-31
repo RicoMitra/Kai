@@ -2,6 +2,8 @@
 
 ## Kai 4.2 — live activities, focus timer, device pop-ups (31 October 2026)
 
+**Update 1 November 2026 (owner):** volume, audio-device and battery pop-ups were removed again; volume/device events only update state. In the music live pill Kai's two white eyes glide to the left instead of a cover square; the waveform stays on the right.
+
 - **Live pill:** while music plays, the collapsed pill widens to 156 × 28 DIP with a mini cover and a five-bar waveform (90 ms repaint only while collapsed and playing; static under Reduce motion). A running focus timer takes priority: orange progress ring + countdown.
 - **Focus:** tray menu or ••• → *Start 25-min focus*. Hover shows pause/cancel; when it ends the island opens a "Focus complete" card with a green rim until clicked. In-memory only (not persisted across restarts).
 - **Device pop-ups:** system volume changes (speaker glyph + bar), audio device connected/disconnected (headphone glyph), battery plugged in / dropping to 20% and 10% (`GetSystemPowerStatus`, checked every 60 s).
