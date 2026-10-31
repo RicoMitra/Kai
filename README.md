@@ -12,7 +12,7 @@
 
 Kai lives at the top center of the desktop. It stays small until needed, expands near the pointer, and opens its controls inside the island. The aim is to make frequent desktop actions available without repeatedly opening a conventional application window.
 
-Created by [RicoMitra](https://github.com/RicoMitra). Current application version: **4.2.0** (31 October 2026): a floating, iPhone-style Dynamic Island redesign with springy motion, pointer-aware eyes and Apple system accents. See [the 4.0 design spec](docs/20-kai-4-dynamic-island.md). The interface is English. Some development documents preserve the original Indonesian planning history.
+Created by [RicoMitra](https://github.com/RicoMitra). Current application version: **4.2.1** (1 November 2026): a floating, iPhone-style Dynamic Island redesign with springy motion, pointer-aware eyes and Apple system accents. See [the 4.0 design spec](docs/20-kai-4-dynamic-island.md). The interface is English. Some development documents preserve the original Indonesian planning history.
 
 **Status:** working local desktop prototype, with automated and native Windows checks. It is not a standalone installer, a Microsoft Store package, or a finished memory-constrained release. The requested **50 MiB maximum across every Kai process, including conversion, has not been proven**.
 
@@ -37,8 +37,6 @@ Kai 4.0 adapts the iPhone Dynamic Island to a Windows pointer-and-keyboard workf
 - **Collapsed:** a 72 × 24 DIP black pill with two vector-painted white eyes. The eyes follow the pointer, the pill leans in slightly as the pointer approaches, and the eyes blink every few seconds only while the island is idle.
 - **Hover:** a 320 × 68 DIP capsule with a large clock (the colon breathes once a second) and the weekday and date. While media is known, it shows a live-activity card instead: cover, title, artist, progress and transport controls.
 - **Floating capsule:** every state floats 8 DIP below the screen edge with fully rounded corners. The robot logo is used only as the application icon (Kai.exe, shortcut and tray), never inside the island.
-- **Live activities:** while music plays, the closed pill keeps Kai's eyes on the left and shows a moving waveform on the right; a focus timer shows a countdown ring. Settings → *Live activities* turns this off to save memory.
-- **Focus timer:** tray or ••• → *Start 25-min focus*; the island glows green when it ends.
 - **Drag and drop:** drag a file toward the top centre and the island opens a **Convert | Shelf** card; drop on a half to convert the file or keep it in Shelf.
 - **Controls:** a wide, short panel (680 × 220–250 DIP) with the page dots in the header. The header has the accent dot, page title, page dots, a **•••** menu and close. Page actions live in the ••• menu and in right-click menus, so the pages show content instead of rows of buttons.
 - **Navigation:** five dots. The selected page has a marker in its accent colour (Transform orange, Clipboard blue, Notes yellow, Shelf purple, Music green) that blends colour and stretches while travelling. Tooltips, accessible names and Left/Right keyboard navigation remain.

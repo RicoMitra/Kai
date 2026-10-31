@@ -117,8 +117,6 @@ class Island(QWidget):
         self._height_motion = Spring(value=280,frequency=28)
         self._notice_motion = Spring(frequency=28)
         self._drop_motion = Spring(frequency=26)
-        self._live_motion = Spring(frequency=22, damping=.8)
-        self._live_shown, self._card_data = None, {}
         self._drop_ready, self._drop_target = False, None
         self._detail = 0.0
         self._deck = None
@@ -154,10 +152,6 @@ class Island(QWidget):
         self._clock.setInterval(1000)
         self._clock.timeout.connect(self._tick_clock)
         self._clock.start()
-        # Live pill waveform: a slow repaint only while music plays and Kai is collapsed.
-        self._live_timer = QTimer(self)
-        self._live_timer.setInterval(90)
-        self._live_timer.timeout.connect(self._live_frame)
         self._blink = QTimer(self)
         self._blink.setSingleShot(True)
         self._blink.timeout.connect(self._start_blink)
@@ -191,16 +185,13 @@ class Island(QWidget):
         pull = max(0.0, self._pull.value) * max(0.0, 1 - p)
         compact_width=lerp(self._panel_width,min(self._panel_width,290),self._notice_motion.value)
         compact_height=lerp(config.ISLAND_EXPANDED_HEIGHT,56,self._notice_motion.value)
-        live = max(0.0, self._live_motion.value)
         drop = self._drop_motion.value
         compact_width = lerp(compact_width, config.ISLAND_DROP_WIDTH, drop)
         compact_height = lerp(compact_height, config.ISLAND_DROP_HEIGHT, drop)
         expanded_width = lerp(compact_width,self._deck_width,self._detail)
         expanded_height = lerp(compact_height,self._height_motion.value,self._detail)
-        rest_width = lerp(config.ISLAND_COLLAPSED_WIDTH, config.ISLAND_LIVE_WIDTH, live)
-        rest_height = lerp(config.ISLAND_COLLAPSED_HEIGHT, config.ISLAND_LIVE_HEIGHT, live)
-        width = lerp(rest_width + 12 * pull, expanded_width, p)
-        height = lerp(rest_height + 2 * pull, expanded_height, ph)
+        width = lerp(config.ISLAND_COLLAPSED_WIDTH + 12 * pull, expanded_width, p)
+        height = lerp(config.ISLAND_COLLAPSED_HEIGHT + 2 * pull, expanded_height, ph)
         return QRectF((self.width() - width) / 2, config.ISLAND_TOP, width, height)
 
     def _radius(self, rect):
@@ -315,12 +306,8 @@ class Island(QWidget):
         self._motion.damping = config.ISLAND_SPRING_DAMPING if opening else 1.0
         self._motion.frequency = config.ISLAND_SPRING_FREQUENCY if opening else 26.0
         self._tall.damping, self._tall.frequency = (.85, 20.0) if opening else (1.0, 26.0)
-        self._notice_motion.target=float(self._card in ('shelf','result','error','context','timer_started','timer_done') and not self._deck_open)
+        self._notice_motion.target=float(self._card in ('shelf','result','error','context') and not self._deck_open)
         self._drop_motion.target=float(self._card == 'drop' and not self._deck_open)
-        kind = self._live_kind()
-        if kind: self._live_shown = kind
-        self._live_motion.target = float(kind is not None)
-        self._sync_live_timer()
         if self.reduced_motion:
             self._motion.value, self._motion.velocity = target, 0.0
             self._tall.value, self._tall.velocity = target, 0.0
@@ -332,7 +319,6 @@ class Island(QWidget):
             self._height_motion.value = self._height_motion.target
             self._notice_motion.value=self._notice_motion.target;self._notice_motion.velocity=0
             self._drop_motion.value=self._drop_motion.target;self._drop_motion.velocity=0
-            self._live_motion.value=self._live_motion.target;self._live_motion.velocity=0
             self._p = target
             self._after_anim()
             self._sync_input()
@@ -364,13 +350,12 @@ class Island(QWidget):
         self._height_motion.step(now - self._last_frame)
         self._notice_motion.step(now-self._last_frame)
         self._drop_motion.step(now-self._last_frame)
-        self._live_motion.step(now-self._last_frame)
         self._last_frame = now
         self._sync_input()
         self._sync_glass()
         self._sync_deck()
         self.update()
-        springs = (self._motion, self._tall, self._detail_motion, self._height_motion, self._notice_motion, self._drop_motion, self._live_motion, self._look, self._pull)
+        springs = (self._motion, self._tall, self._detail_motion, self._height_motion, self._notice_motion, self._drop_motion, self._look, self._pull)
         if all(spring.settled for spring in springs) and not self._blinking():
             self._after_anim()
             if self.reduced_motion or self._tone != 'listen' or not self._open:
@@ -385,46 +370,8 @@ class Island(QWidget):
             self._card = 'default'
 
     def _tick_clock(self):
-        job = self._job
-        if job and job.get('state') == 'running' and time.time() >= job['due']:
-            self._job = None
-            self.on_event('timer_done', 'Focus complete', {'minutes': round(job.get('total', 0) / 60)})
-            return
-        if self._p > 0.5 or job:
+        if self._p > 0.5:
             self.update()
-
-    # --- Live activities ------------------------------------------------------
-    def _live_kind(self):
-        if self._job: return 'focus'
-        if self._media.get('playing'): return 'music'
-        return None
-
-    def _sync_live_timer(self):
-        wanted = self._live_kind() == 'music' and not self._open and not self.reduced_motion and self.isVisible()
-        if wanted and not self._live_timer.isActive(): self._live_timer.start()
-        elif not wanted and self._live_timer.isActive(): self._live_timer.stop()
-
-    def _live_frame(self):
-        if self._p < .45: self.update(self.body_rect().toAlignedRect().adjusted(-2, -2, 2, 2))
-
-    def start_focus(self, minutes=None):
-        seconds = 60 * (minutes or config.FOCUS_MINUTES)
-        self._job = {'id': 'focus', 'kind': 'focus', 'state': 'running', 'due': time.time() + seconds,
-                     'remaining': seconds, 'total': seconds}
-        self.on_event('timer_started', f'Focus · {seconds // 60} minutes', self._job)
-
-    def toggle_focus(self):
-        job = self._job
-        if not job: return
-        if job['state'] == 'running':
-            job['remaining'], job['state'] = max(0, job['due'] - time.time()), 'paused'
-        else:
-            job['due'], job['state'] = time.time() + job['remaining'], 'running'
-        self.update()
-
-    def cancel_focus(self):
-        self._job = None
-        self._target(float(self._open)); self.update()
 
     def attach_deck(self, panel):
         if self._deck is not panel:
@@ -506,23 +453,22 @@ class Island(QWidget):
                         colors=[image.pixelColor(x,y) for y in range(image.height()) for x in range(image.width())]
                         # One tiny average per cover change; no full-image blur/cache.
                         self._album_color=QColor(*(round(sum(c.getRgb()[i] for c in colors)/len(colors)*.42) for i in range(3)))
-            self._target(float(self._open))   # live pill grows or shrinks with playback
-            self.update()
+            if self._open: self.update()
             return
-        if kind in ('audio_state', 'volume', 'device', 'battery'):
-            if kind != 'device': self._audio = data or {}
-            return   # owner removed volume/device/battery pop-ups
+        if kind in ('audio_state', 'volume'):
+            self._audio = data or {}
+            if kind == 'audio_state': return
         if kind == 'timer_started':
             self._job = data
         if self._card == 'timer_done' and kind not in ('listening', 'error', 'timer_done'):
             return
-        if kind in ('timer_done', 'timer_started'):
-            self._card_data = data or {}
+        if kind == 'device' and data:
+            text = data.get('name', text) + (' connected' if data.get('connected') else ' disconnected')
         if kind in ('info', 'intent'):
             return
         duration = {'loading': 120, 'ready': 2.5, 'listening': 30, 'processing': 30,
                     'heard': 10, 'result': 3.5, 'timer_done': float('inf'), 'error': 5,
-                    'volume': 1.8, 'device': 3.5, 'timer_started': 2.5, 'weather': 5,
+                    'volume': 1.8, 'device': 3, 'timer_started': 3, 'weather': 5,
                     'shelf': 3,'context':4}.get(kind)
         if duration is None:
             return
@@ -671,18 +617,8 @@ class Island(QWidget):
             # Hairline keeps the black capsule legible on dark wallpapers.
             qp.setPen(QPen(QColor(255,255,255,int(22*p)),1));qp.setBrush(Qt.NoBrush)
             qp.drawPath(body_path(rect.adjusted(.5,.5,-.5,-.5),radius-.5))
-        if self._card == 'timer_done':
-            # Focus finished: the capsule rim glows green until acknowledged.
-            qp.setPen(QPen(QColor(48, 209, 88, 230), 2)); qp.setBrush(Qt.NoBrush)
-            qp.drawPath(body_path(rect.adjusted(1, 1, -1, -1), radius - 1))
         if p<.45:
-            fade, live = 1-p/.45, min(1.0, max(0.0, self._live_motion.value))
-            if self._live_shown == 'music':
-                # The eyes stay; they glide left to make room for the waveform.
-                self._draw_eyes(qp, rect, fade, lerp(rect.center().x(), rect.x() + 26, live))
-            elif live < 1:
-                self._draw_eyes(qp, rect, fade * (1 - live))
-            if live > 0: self._draw_live(qp, rect, fade * live)
+            self._draw_eyes(qp, rect, 1-p/.45)
         alpha = min(1.0, max(0.0, (p - 0.55) / 0.4))
         alpha *= max(0,1-self._detail*2)
         if alpha:
@@ -696,41 +632,14 @@ class Island(QWidget):
             qp.restore()
         qp.end()
 
-    def _draw_live(self, qp, rect, opacity):
-        """Collapsed live activity: cover + waveform, or focus ring + countdown."""
-        qp.save(); qp.setOpacity(opacity); qp.setClipPath(body_path(rect, rect.height() / 2))
-        h = rect.height(); left = QRectF(rect.x() + 5, rect.y() + 4, h - 8, h - 8)
-        if self._live_shown == 'focus' and self._job:
-            job = self._job
-            remaining = job['remaining'] if job['state'] == 'paused' else max(0, job['due'] - time.time())
-            done = 1 - remaining / max(1, job.get('total', remaining or 1))
-            ring = left.adjusted(2, 2, -2, -2)
-            qp.setBrush(Qt.NoBrush); qp.setPen(QPen(QColor(255, 159, 10, 60), 2.4)); qp.drawEllipse(ring)
-            qp.setPen(QPen(QColor('#ff9f0a'), 2.4, Qt.SolidLine, Qt.RoundCap))
-            qp.drawArc(ring, 90 * 16, -round(done * 360 * 16))
-            minutes, seconds = divmod(int(remaining + .999), 60)
-            self._text(qp, QRectF(rect.right() - 62, rect.y(), 52, h), f'{minutes:02}:{seconds:02}', 13,
-                       '#ffffff' if job['state'] == 'running' else LABEL2, QFont.DemiBold, Qt.AlignRight)
-        else:
-            color = self._album_color.lighter(330) if self._album_color is not None else QColor('#30d158')
-            if color.lightness() < 120: color = QColor('#30d158')
-            playing = self._media.get('playing') and not self.reduced_motion
-            phase = time.perf_counter() * 7
-            qp.setPen(Qt.NoPen); qp.setBrush(color)
-            for index in range(5):
-                amp = (.35 + .65 * abs(math.sin(phase * (0.8 + index * .23) + index * 1.3))) if playing else .35
-                bar = (h - 12) * amp; x = rect.right() - 14 - (4 - index) * 5
-                qp.drawRoundedRect(QRectF(x - 1.5, rect.center().y() - bar / 2, 3, bar), 1.5, 1.5)
-        qp.restore()
-
-    def _draw_eyes(self, qp, rect, opacity, center_x=None):
+    def _draw_eyes(self, qp, rect, opacity):
         t = (time.perf_counter() - self._blink_started) / .14
         height = 10 * (1 - .85 * math.sin(math.pi * t)) if 0 <= t < 1 else 10
         look = self._look.value * 2.5
         spread = 1 + .12 * max(0.0, self._pull.value)
         qp.save();qp.setOpacity(opacity);qp.setPen(Qt.NoPen);qp.setBrush(Qt.white)
         for offset in (-6.5,6.5):
-            qp.drawRoundedRect(QRectF((rect.center().x() if center_x is None else center_x)+offset*spread+look-2,rect.center().y()-height/2,4,height),2,min(2,height/2))
+            qp.drawRoundedRect(QRectF(rect.center().x()+offset*spread+look-2,rect.center().y()-height/2,4,height),2,min(2,height/2))
         qp.restore()
 
     def _text(self, qp, rect, text, size=14, color='#ffffff', weight=QFont.Normal, align=Qt.AlignLeft, spacing=0):
@@ -806,9 +715,6 @@ class Island(QWidget):
                 url = self._context.get('action') == 'url'
                 tone, kind, label = ('#0a84ff','link','LINK') if url else ('#bf5af2','shelf','SHELF')
                 chip = 'Open' if url else 'View'
-            if self._card in ('timer_started', 'timer_done'):
-                tone, kind = ('#30d158', 'ok') if self._card == 'timer_done' else ('#ff9f0a', 'busy')
-                label = 'FOCUS DONE' if self._card == 'timer_done' else 'FOCUS'
             if self.demo and self._tone == 'listen':
                 label = 'LISTENING PREVIEW'
             self._glyph(qp, QPointF(32, h / 2), kind, tone)
@@ -946,9 +852,6 @@ def run_island(demo=False, reduced_motion=False, media_on_demand=None):
             from desktop_worker import DesktopServices
             desktop = DesktopServices()
             media, audio = desktop.media, desktop.audio
-            # Live activities keep the small media/audio worker running for the collapsed
-            # pill (music), volume and headset pop-ups. Off = the old on-demand behaviour.
-            desktop.keep_alive = bool(settings().get('live_activities', True))
         else:
             from native import MediaService, AudioService
             media, audio = MediaService(), AudioService()
@@ -1010,12 +913,6 @@ def run_island(demo=False, reduced_motion=False, media_on_demand=None):
             audio.set_volume(int(command.split(':')[1]))
         elif command=='mute' and audio:
             audio.toggle_mute()
-        elif command == 'focus':
-            window.start_focus()
-        elif command.startswith('toggle_job:'):
-            window.toggle_focus()
-        elif command.startswith('cancel_job:'):
-            window.cancel_focus()
         elif command in ('prev','toggle','next'):
             if hasattr(media, 'command'):
                 media.command(command)
@@ -1096,7 +993,6 @@ def run_island(demo=False, reduced_motion=False, media_on_demand=None):
             ('Error message', 'error', 'Device unavailable'),
         ):
             examples.addAction(label, lambda k=kind, t=text: window.on_event(k, t))
-    menu.addAction(f'Start focus ({config.FOCUS_MINUTES} min)', window.start_focus)
     menu.addAction('Dismiss popup', window.dismiss)
     reduced = QAction('Reduce motion', menu)
     reduced.setCheckable(True)
@@ -1135,8 +1031,6 @@ def run_island(demo=False, reduced_motion=False, media_on_demand=None):
         lock.unlock()
     app.aboutToQuit.connect(cleanup)
     window.show()
-    if desktop and desktop.keep_alive:
-        desktop.start()
     for service in services:
         service.start()
     return app.exec()

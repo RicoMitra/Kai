@@ -2,6 +2,8 @@
 
 ## Kai 4.2 — live activities, focus timer, device pop-ups (31 October 2026)
 
+**Update 1 November 2026 (owner, later the same day):** the music live pill and the focus timer were removed as well, to save RAM. Kai is back to the 4.1 island: resting eyes, no background media helper (it runs only while Music is open). Only the quieter media updates (track change, pause or seek) remain from 4.2. Version 4.2.1.
+
 **Update 1 November 2026 (owner):** volume, audio-device and battery pop-ups were removed again; volume/device events only update state. In the music live pill Kai's two white eyes glide to the left instead of a cover square; the waveform stays on the right.
 
 - **Live pill:** while music plays, the collapsed pill widens to 156 × 28 DIP with a mini cover and a five-bar waveform (90 ms repaint only while collapsed and playing; static under Reduce motion). A running focus timer takes priority: orange progress ring + countdown.

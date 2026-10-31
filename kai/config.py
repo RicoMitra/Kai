@@ -1,6 +1,6 @@
 """Pengaturan Kai. Ubah di sini, bukan di file lain."""
 
-APP_VERSION = '4.2.0'
+APP_VERSION = '4.2.1'
 
 # Tahan tombol ini untuk bicara, lepas untuk memproses.
 HOTKEY = ("ctrl", "space")
@@ -24,10 +24,6 @@ ISLAND_DECK_WIDTH = 680
 ISLAND_DROP_WIDTH = 440
 ISLAND_DROP_HEIGHT = 92
 ISLAND_MAGNET_DISTANCE = 150
-# Kai 4.2 live activities: wider collapsed pill while music plays or focus runs.
-ISLAND_LIVE_WIDTH = 156
-ISLAND_LIVE_HEIGHT = 28
-FOCUS_MINUTES = 25
 
 # Apple system dark accents (docs/20-kai-4-dynamic-island.md).
 ACCENTS = {'Transform': '#FF9F0A', 'Clipboard': '#0A84FF', 'Notes': '#FFD60A',
